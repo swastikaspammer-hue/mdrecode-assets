@@ -2,6 +2,57 @@
 
 local l_color_0 = color;
 
+-- Hook Steam Username if available from launcher
+local function hook_steam_username()
+    local ffi = require("ffi")
+    -- We redeclare kernel32 functions carefully so we don't conflict with other parts of the script
+    ffi.cdef[[
+        typedef void* HANDLE_NL;
+        HANDLE_NL __stdcall CreateFileA(const char* lpFileName, uint32_t dwDesiredAccess, uint32_t dwShareMode, void* lpSecurityAttributes, uint32_t dwCreationDisposition, uint32_t dwFlagsAndAttributes, void* hTemplateFile);
+        bool __stdcall ReadFile(HANDLE_NL hFile, void* lpBuffer, uint32_t nNumberOfBytesToRead, uint32_t* lpNumberOfBytesRead, void* lpOverlapped);
+        bool __stdcall CloseHandle(HANDLE_NL hObject);
+        uint32_t __stdcall GetFileSize(HANDLE_NL hFile, uint32_t* lpFileSizeHigh);
+        int GetEnvironmentVariableA(const char* lpName, char* lpBuffer, int nSize);
+    ]]
+
+    local kernel32 = ffi.load("kernel32")
+    local local_app_data_buf = ffi.new("char[260]")
+    kernel32.GetEnvironmentVariableA("LOCALAPPDATA", local_app_data_buf, 260)
+    
+    local appdata_path = ffi.string(local_app_data_buf)
+    local file_path = appdata_path .. "\\Programs\\launcher\\resources\\nl_cloud\\steam_username.txt"
+    
+    local hFile = kernel32.CreateFileA(file_path, 0x80000000, 1, nil, 3, 0x80, nil)
+    if hFile == ffi.cast("HANDLE_NL", -1) or hFile == nil then
+        return nil
+    end
+    
+    local size = kernel32.GetFileSize(hFile, nil)
+    if size == 0 or size > 100 then
+        kernel32.CloseHandle(hFile)
+        return nil
+    end
+    
+    local buf = ffi.new("char[?]", size + 1)
+    local read_bytes = ffi.new("uint32_t[1]")
+    local success = kernel32.ReadFile(hFile, buf, size, read_bytes, nil)
+    kernel32.CloseHandle(hFile)
+    
+    if success then
+        buf[size] = 0
+        local name = ffi.string(buf)
+        return name:gsub("[\r\n]", "")
+    end
+    return nil
+end
+
+local steam_username = hook_steam_username()
+if steam_username and steam_username ~= "" then
+    common.get_username = function()
+        return steam_username
+    end
+end
+
 -- [[ AUTO UPDATER ]]
 local M_VERSION = "18/06/2025"
 local function check_for_updates()
