@@ -39,16 +39,8 @@ local function check_for_updates()
                 kernel32.CloseHandle(hFile)
                 
                 if remote_version ~= M_VERSION and remote_version ~= "" then
-                    local local_app_data_buf = ffi.new("char[260]")
-                    kernel32.GetEnvironmentVariableA("LOCALAPPDATA", local_app_data_buf, 260)
-                    local script_path = ffi.string(local_app_data_buf) .. "\\Programs\\launcher\\resources\\nl_cloud\\scripts\\76_madrilla_recode_pure_hud.lua"
-                    
-                    local script_url = "https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/nl/madrilla_recode.lua?t=" .. tostring(kernel32.GetTickCount())
-                    wininet.DeleteUrlCacheEntryA(script_url)
-                    urlmon.URLDownloadToFileA(nil, script_url, script_path, 0, 0)
-                    
-                    print("[Madrilla Recode] Updated to version " .. remote_version .. "! Reloading...")
-                    common.reload_script()
+                    _G.MADRILLA_UPDATE_AVAILABLE = remote_version
+                    print("[Madrilla Recode] A new update (" .. remote_version .. ") is available on the GitHub repository!")
                 end
             else
                 kernel32.CloseHandle(hFile)
@@ -6976,6 +6968,9 @@ do
                     v49.attach("shutdown", v53.destroy, "lua::exploits::destroy");
                     v49.attach("shutdown", v54.destroy, "lua::hitchance::destroy");
                     v311.add(v36("Welcome back %s. Last update was %s", common.get_username(), v46), v51.icons.open_check);
+                    if _G.MADRILLA_UPDATE_AVAILABLE then
+                        v311.add(v36("Update %s is available on GitHub!", _G.MADRILLA_UPDATE_AVAILABLE), v51.icons.cloud);
+                    end
                     v154.play_sound("MadrillaSounds/menu_load.wav", 1, 100, 0, 0);
                     return;
                 end;
