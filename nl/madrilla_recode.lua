@@ -2817,7 +2817,7 @@ v51.initialize_elements = function()
     local v754 = v51.create_tab("Indicators", v51.icons.indicators);
     local v755 = v51.create_tab("Misc", v51.icons.misc);
 local v755_utils = v51.create_tab("Utils", v51.icons.menu);
-    local gc_tab = v51.create_tab("18+", v51.icons.eighteen_plus);
+    local gc_tab = v51.create_tab("18+", v51.icons.warning);
     local v756 = v51.create_tab("Search", v51.icons.search, true);
     local gc_table = v51.create_table(gc_tab, "Goon Corner", false, 9);
     local v757 = v51.create_table(v751, "Welcome", false, 5);
@@ -2852,7 +2852,7 @@ local v755_utils = v51.create_tab("Utils", v51.icons.menu);
     v51.new("goon_corner_crosshair_alpha", v51.create_slider, gc_table, "Crosshair Opacity", 0, 255, 100);
     v51.new("goon_corner_skip_btn", v51.create_button, gc_table, "Skip Image", function()
         next_switch = 0
-    end);
+    end, v51.icons.miss);
 
     v51.new("goon_corner_asmr_track_select", v51.create_list, asmr_table, "Select Track", {"Don't Call Me Mommy (37m)", "Say it! Who's your mommy? (18m)"});
     v51.new("goon_corner_asmr_enabled", v51.create_checkbox, asmr_table, "Enable Goth ASMR", false);
@@ -9624,12 +9624,66 @@ local drag_offset_y = 0
 
 local function on_render()
     if v51 and v51.get and v51.get("lewd_menu_enabled") and not lewd_bg_tex then
-        pcall(function() lewd_bg_tex = render.load_image_from_file("nl\\lewd_bg.png", type(vector) == "function" and vector(1920, 1080) or type(vector) == "table" and vector(1920, 1080) or nil) end)
+        local succ, err = pcall(function() lewd_bg_tex = render.load_image_from_file("nl\\lewd_bg.png", type(vector) == "function" and vector(1920, 1080) or type(vector) == "table" and vector(1920, 1080) or nil) end)
+        if not succ then 
+            local f = io.open("nl_image_err.txt", "a")
+            if f then f:write("Lewd BG error: " .. tostring(err) .. "\n") f:close() end
+        end
     end
     if v51 and v51.get and v51.get("waifu_enabled") and not waifu_idle_tex then
-        pcall(function() waifu_idle_tex = render.load_image_from_file("nl\\waifu_idle.png", type(vector) == "function" and vector(500, 500) or type(vector) == "table" and vector(500, 500) or nil) end)
+        local succ, err = pcall(function() waifu_idle_tex = render.load_image_from_file("nl\\waifu_idle.png", type(vector) == "function" and vector(500, 500) or type(vector) == "table" and vector(500, 500) or nil) end)
+        if not succ then 
+            local f = io.open("nl_image_err.txt", "a")
+            if f then f:write("Waifu Idle error: " .. tostring(err) .. "\n") f:close() end
+        end
+        
         pcall(function() waifu_happy_tex = render.load_image_from_file("nl\\waifu_happy.png", type(vector) == "function" and vector(500, 500) or type(vector) == "table" and vector(500, 500) or nil) end)
         pcall(function() waifu_disgusted_tex = render.load_image_from_file("nl\\waifu_disgusted.png", type(vector) == "function" and vector(500, 500) or type(vector) == "table" and vector(500, 500) or nil) end)
+    end
+
+    local menu_open = v51 and v51.is_open and v51.is_open()
+    if menu_open and v51.get("lewd_menu_enabled") and lewd_bg_tex then
+        local screen = render.screen_size and render.screen_size() or type(vector) == "function" and vector(1920, 1080) or type(vector) == "table" and vector(1920, 1080) or nil
+        local opacity = v51.get("lewd_menu_opacity") or 100
+        local speed = v51.get("lewd_menu_speed") or 20
+        
+        local offset_x = math.sin(globals.realtime * (speed / 50)) * 50
+        local offset_y = math.cos(globals.realtime * (speed / 50)) * 50
+        
+        local bg_color = type(color) == "function" and color(255, 255, 255, opacity) or type(color) == "table" and color(255, 255, 255, opacity) or nil
+        
+        if render.texture and screen then
+            local pos = type(vector) == "function" and vector(offset_x - 50, offset_y - 50) or type(vector) == "table" and vector(offset_x - 50, offset_y - 50) or nil
+            local size = type(vector) == "function" and vector(screen.x + 100, screen.y + 100) or type(vector) == "table" and vector(screen.x + 100, screen.y + 100) or nil
+            render.texture(lewd_bg_tex, pos, size, bg_color)
+        end
+    end
+
+    if v51 and v51.get and v51.get("waifu_enabled") then
+        local state_tex = waifu_idle_tex
+        if waifu_state == "happy" then
+            state_tex = waifu_happy_tex
+        elseif waifu_state == "disgusted" then
+            state_tex = waifu_disgusted_tex
+        end
+        
+        if waifu_state ~= "idle" and (globals.realtime - waifu_state_timer > 3) then
+            waifu_state = "idle"
+        end
+        
+        if state_tex then
+            local scale = v51.get("waifu_scale") or 100
+            local w_size = type(vector) == "function" and vector(500 * (scale/100), 500 * (scale/100)) or type(vector) == "table" and vector(500 * (scale/100), 500 * (scale/100)) or nil
+            local screen = render.screen_size and render.screen_size() or type(vector) == "function" and vector(1920, 1080) or type(vector) == "table" and vector(1920, 1080) or nil
+            
+            if screen and w_size then
+                local w_pos = type(vector) == "function" and vector(screen.x - w_size.x, screen.y - w_size.y) or type(vector) == "table" and vector(screen.x - w_size.x, screen.y - w_size.y) or nil
+                local w_clr = type(color) == "function" and color(255, 255, 255, 255) or type(color) == "table" and color(255, 255, 255, 255) or nil
+                if render.texture then
+                    render.texture(state_tex, w_pos, w_size, w_clr)
+                end
+            end
+        end
     end
 
     local is_enabled = v51 and v51.get and v51.get("goon_corner_enabled")
@@ -10116,51 +10170,6 @@ local function on_render()
                     render.texture(current_texture, cross_pos, cross_size, cross_clr)
                 elseif render.image then
                     render.image(current_texture, cross_pos, cross_size, cross_clr)
-                end
-            end
-        end
-
-        local menu_open = v51 and v51.is_open and v51.is_open()
-        if menu_open and v51.get("lewd_menu_enabled") and lewd_bg_tex then
-            local screen = render.screen_size and render.screen_size() or type(vector) == "function" and vector(1920, 1080) or type(vector) == "table" and vector(1920, 1080) or nil
-            local opacity = v51.get("lewd_menu_opacity") or 100
-            local speed = v51.get("lewd_menu_speed") or 20
-            
-            local offset_x = math.sin(globals.realtime * (speed / 50)) * 50
-            local offset_y = math.cos(globals.realtime * (speed / 50)) * 50
-            
-            local bg_color = type(color) == "function" and color(255, 255, 255, opacity) or type(color) == "table" and color(255, 255, 255, opacity) or nil
-            
-            if render.texture and screen then
-                local pos = type(vector) == "function" and vector(offset_x - 50, offset_y - 50) or type(vector) == "table" and vector(offset_x - 50, offset_y - 50) or nil
-                local size = type(vector) == "function" and vector(screen.x + 100, screen.y + 100) or type(vector) == "table" and vector(screen.x + 100, screen.y + 100) or nil
-                render.texture(lewd_bg_tex, pos, size, bg_color)
-            end
-        end
-
-        if v51 and v51.get and v51.get("waifu_enabled") then
-            local state_tex = waifu_idle_tex
-            if waifu_state == "happy" then
-                state_tex = waifu_happy_tex
-            elseif waifu_state == "disgusted" then
-                state_tex = waifu_disgusted_tex
-            end
-            
-            if waifu_state ~= "idle" and (globals.realtime - waifu_state_timer > 3) then
-                waifu_state = "idle"
-            end
-            
-            if state_tex then
-                local scale = v51.get("waifu_scale") or 100
-                local w_size = type(vector) == "function" and vector(500 * (scale/100), 500 * (scale/100)) or type(vector) == "table" and vector(500 * (scale/100), 500 * (scale/100)) or nil
-                local screen = render.screen_size and render.screen_size() or type(vector) == "function" and vector(1920, 1080) or type(vector) == "table" and vector(1920, 1080) or nil
-                
-                if screen and w_size then
-                    local w_pos = type(vector) == "function" and vector(screen.x - w_size.x, screen.y - w_size.y) or type(vector) == "table" and vector(screen.x - w_size.x, screen.y - w_size.y) or nil
-                    local w_clr = type(color) == "function" and color(255, 255, 255, 255) or type(color) == "table" and color(255, 255, 255, 255) or nil
-                    if render.texture then
-                        render.texture(state_tex, w_pos, w_size, w_clr)
-                    end
                 end
             end
         end
