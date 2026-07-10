@@ -2457,7 +2457,9 @@ local function v674(v666, v667, v668, v669)
         v667._name_measured = v673;
     end;
     v29.text("theme::font", v666 + l_vector_0(0, 20 - v673.y / 2), l_color_0(255, (180 + 74 * v671) * v668), v39, v667._name);
-    v29.texture(v667.extands.icon.img, l_vector_0(v666.x + 300 - 30, v666.y), v667.extands.icon.size, l_color_0(255, 100):override(v668 * v671));
+    if v667.extands.icon then
+        v29.texture(v667.extands.icon.img, l_vector_0(v666.x + 300 - 30, v666.y), v667.extands.icon.size, l_color_0(255, 100):override(v668 * v671));
+    end
     v50.render_accent(v666 + l_vector_0(300 - 32 * v671, 10), v666 + l_vector_0(300 - 30 * v671, 30), v671, 1);
     if v670 and v111.is_left_pressed and not v51.fix_press then
         v51.fix_press = true;
@@ -2817,7 +2819,7 @@ v51.initialize_elements = function()
 local v755_utils = v51.create_tab("Utils", v51.icons.menu);
     local gc_tab = v51.create_tab("18+", v51.icons.eighteen_plus);
     local v756 = v51.create_tab("Search", v51.icons.search, true);
-    local gc_table = v51.create_table(gc_tab, "Goon Corner", false, 6);
+    local gc_table = v51.create_table(gc_tab, "Goon Corner", false, 11);
     local v757 = v51.create_table(v751, "Welcome", false, 5);
     v51.create_text(v757, "Welcome text", v36("Welcome back %s", common.get_username()));
     v51.create_text(v757, "pad1", " ");
@@ -2827,15 +2829,15 @@ local v755_utils = v51.create_tab("Utils", v51.icons.menu);
     v51.new("theme_background", v51.create_color, v758, "Background color", l_color_0(10, 10, 30, 100));
     v51.new("menu_sounds", v51.create_checkbox, v758, "Menu sounds", true);
     v51.new("menu_group_names", v51.create_checkbox, v758, "Menu group names", true);
-    local asmr_table = v51.create_table(gc_tab, "ASMR Audio", true, 5);
-    local panic_table = v51.create_table(gc_tab, "Controls", true, 2);
+    local asmr_table = v51.create_table(gc_tab, "ASMR Audio", true, 6);
+    local panic_table = v51.create_table(gc_tab, "Controls", true, 3);
     
-    local lewd_menu_tab = v51.create_table(gc_tab, "Lewd Menu Theme", false, 4);
+    local lewd_menu_tab = v51.create_table(gc_tab, "Lewd Menu Theme", true, 4);
     v51.new("lewd_menu_enabled", v51.create_checkbox, lewd_menu_tab, "Enable Lewd Theme", false);
     v51.new("lewd_menu_opacity", v51.create_slider, lewd_menu_tab, "Background Opacity", 0, 255, 100);
     v51.new("lewd_menu_speed", v51.create_slider, lewd_menu_tab, "Animation Speed", 1, 100, 20);
 
-    local waifu_tab = v51.create_table(gc_tab, "Waifu Companion", false, 6);
+    local waifu_tab = v51.create_table(gc_tab, "Waifu Companion", true, 4);
     v51.new("waifu_enabled", v51.create_checkbox, waifu_tab, "Enable Companion", false);
     v51.new("waifu_personality", v51.create_list, waifu_tab, "Personality", {"Goth Mommy", "Bratty Femboy", "Feral Gooner"});
     v51.new("waifu_scale", v51.create_slider, waifu_tab, "Scale (%)", 10, 200, 100);
