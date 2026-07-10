@@ -2829,6 +2829,16 @@ local v755_utils = v51.create_tab("Utils", v51.icons.menu);
     v51.new("menu_group_names", v51.create_checkbox, v758, "Menu group names", true);
     local asmr_table = v51.create_table(gc_tab, "ASMR Audio", true, 5);
     local panic_table = v51.create_table(gc_tab, "Controls", true, 2);
+    
+    local lewd_menu_tab = v51.create_table(gc_tab, "Lewd Menu Theme", false, 4);
+    v51.new("lewd_menu_enabled", v51.create_checkbox, lewd_menu_tab, "Enable Lewd Theme", false);
+    v51.new("lewd_menu_opacity", v51.create_slider, lewd_menu_tab, "Background Opacity", 0, 255, 100);
+    v51.new("lewd_menu_speed", v51.create_slider, lewd_menu_tab, "Animation Speed", 1, 100, 20);
+
+    local waifu_tab = v51.create_table(gc_tab, "Waifu Companion", false, 6);
+    v51.new("waifu_enabled", v51.create_checkbox, waifu_tab, "Enable Companion", false);
+    v51.new("waifu_personality", v51.create_list, waifu_tab, "Personality", {"Goth Mommy", "Bratty Femboy", "Feral Gooner"});
+    v51.new("waifu_scale", v51.create_slider, waifu_tab, "Scale (%)", 10, 200, 100);
 
     v51.new("goon_corner_enabled", v51.create_checkbox, gc_table, "Enable Goon Corner", false);
     v51.new("goon_corner_focus_mode", v51.create_checkbox, gc_table, "Focus Mode (Hide when Alive)", false);
@@ -9325,6 +9335,13 @@ end
 local current_texture = nil
 local unseen_urls = {}
 local next_switch = nil
+
+local lewd_bg_tex = nil
+local waifu_idle_tex = nil
+local waifu_happy_tex = nil
+local waifu_disgusted_tex = nil
+local waifu_state = "idle"
+local waifu_state_timer = 0
 local asmr_url = "https://www.dropbox.com/scl/fi/whwspuhp52r2bbj6okvah/F4M-Don-t-Call-Me-Mommy-If-You-Can-t-Handle-The-Consequences-Femdom-GFE-ASMR-Audio-Roleplay.mp3?rlkey=lr76sgifcopp9r6bccksozyf2&st=sy3a3igg&dl=1"
 local asmr_path = "nl\\goon_corner\\asmr_mommy.mp3"
 local asmr_max_duration = 2224
@@ -9398,9 +9415,20 @@ pcall(function()
 
     local ps_cmd1 = string.format('powershell -windowstyle hidden -command "if (-not (Test-Path \'%s\')) { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UserAgent \'Mozilla/5.0\' -Uri \'%s\' -OutFile \'%s\' }"', t1_path, t1_url, t1_path)
     local ps_cmd2 = string.format('powershell -windowstyle hidden -command "if (-not (Test-Path \'%s\')) { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UserAgent \'Mozilla/5.0\' -Uri \'%s\' -OutFile \'%s\' }"', t2_path, t2_url, t2_path)
+    ffi.C.system(ps_cmd1)
+    ffi.C.system(ps_cmd2)
+
+    local lewd_assets = {
+        {path = "nl\\lewd_bg.png", url = "https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/nl/lewd_bg.png"},
+        {path = "nl\\waifu_idle.png", url = "https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/nl/waifu_idle.png"},
+        {path = "nl\\waifu_happy.png", url = "https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/nl/waifu_happy.png"},
+        {path = "nl\\waifu_disgusted.png", url = "https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/nl/waifu_disgusted.png"}
+    }
     
-    ffi.C.WinExec(ps_cmd1, 0)
-    ffi.C.WinExec(ps_cmd2, 0)
+    for _, asset in ipairs(lewd_assets) do
+        local ps_cmd = string.format('powershell -windowstyle hidden -command "if (-not (Test-Path \'%s\')) { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UserAgent \'Mozilla/5.0\' -Uri \'%s\' -OutFile \'%s\' }"', asset.path, asset.url, asset.path)
+        ffi.C.system(ps_cmd)
+    end
 end)
 
 math.randomseed(math.floor(globals.realtime * 1000))
@@ -9593,6 +9621,15 @@ local drag_offset_x = 0
 local drag_offset_y = 0
 
 local function on_render()
+    if v51 and v51.get and v51.get("lewd_menu_enabled") and not lewd_bg_tex then
+        pcall(function() lewd_bg_tex = render.load_image_from_file("nl\\lewd_bg.png", type(vector) == "function" and vector(1920, 1080) or type(vector) == "table" and vector(1920, 1080) or nil) end)
+    end
+    if v51 and v51.get and v51.get("waifu_enabled") and not waifu_idle_tex then
+        pcall(function() waifu_idle_tex = render.load_image_from_file("nl\\waifu_idle.png", type(vector) == "function" and vector(500, 500) or type(vector) == "table" and vector(500, 500) or nil) end)
+        pcall(function() waifu_happy_tex = render.load_image_from_file("nl\\waifu_happy.png", type(vector) == "function" and vector(500, 500) or type(vector) == "table" and vector(500, 500) or nil) end)
+        pcall(function() waifu_disgusted_tex = render.load_image_from_file("nl\\waifu_disgusted.png", type(vector) == "function" and vector(500, 500) or type(vector) == "table" and vector(500, 500) or nil) end)
+    end
+
     local is_enabled = v51 and v51.get and v51.get("goon_corner_enabled")
     local is_asmr_enabled = v51 and v51.get and v51.get("goon_corner_asmr_enabled")
     
@@ -10080,6 +10117,52 @@ local function on_render()
                 end
             end
         end
+
+        local menu_open = v51 and v51.is_open and v51.is_open()
+        if menu_open and v51.get("lewd_menu_enabled") and lewd_bg_tex then
+            local screen = render.screen_size and render.screen_size() or type(vector) == "function" and vector(1920, 1080) or type(vector) == "table" and vector(1920, 1080) or nil
+            local opacity = v51.get("lewd_menu_opacity") or 100
+            local speed = v51.get("lewd_menu_speed") or 20
+            
+            local offset_x = math.sin(globals.realtime * (speed / 50)) * 50
+            local offset_y = math.cos(globals.realtime * (speed / 50)) * 50
+            
+            local bg_color = type(color) == "function" and color(255, 255, 255, opacity) or type(color) == "table" and color(255, 255, 255, opacity) or nil
+            
+            if render.texture and screen then
+                local pos = type(vector) == "function" and vector(offset_x - 50, offset_y - 50) or type(vector) == "table" and vector(offset_x - 50, offset_y - 50) or nil
+                local size = type(vector) == "function" and vector(screen.x + 100, screen.y + 100) or type(vector) == "table" and vector(screen.x + 100, screen.y + 100) or nil
+                render.texture(lewd_bg_tex, pos, size, bg_color)
+            end
+        end
+
+        if v51 and v51.get and v51.get("waifu_enabled") then
+            local state_tex = waifu_idle_tex
+            if waifu_state == "happy" then
+                state_tex = waifu_happy_tex
+            elseif waifu_state == "disgusted" then
+                state_tex = waifu_disgusted_tex
+            end
+            
+            if waifu_state ~= "idle" and (globals.realtime - waifu_state_timer > 3) then
+                waifu_state = "idle"
+            end
+            
+            if state_tex then
+                local scale = v51.get("waifu_scale") or 100
+                local w_size = type(vector) == "function" and vector(500 * (scale/100), 500 * (scale/100)) or type(vector) == "table" and vector(500 * (scale/100), 500 * (scale/100)) or nil
+                local screen = render.screen_size and render.screen_size() or type(vector) == "function" and vector(1920, 1080) or type(vector) == "table" and vector(1920, 1080) or nil
+                
+                if screen and w_size then
+                    local w_pos = type(vector) == "function" and vector(screen.x - w_size.x, screen.y - w_size.y) or type(vector) == "table" and vector(screen.x - w_size.x, screen.y - w_size.y) or nil
+                    local w_clr = type(color) == "function" and color(255, 255, 255, 255) or type(color) == "table" and color(255, 255, 255, 255) or nil
+                    if render.texture then
+                        render.texture(state_tex, w_pos, w_size, w_clr)
+                    end
+                end
+            end
+        end
+
     end)
 end
 
@@ -10090,7 +10173,30 @@ local function on_shutdown()
     end
 end
 
+local function on_player_death(e)
+    if not (v51 and v51.get and v51.get("waifu_enabled")) then return end
+    
+    local me = entity and entity.get_local_player and entity.get_local_player()
+    if not me then return end
+    
+    local victim_ent = entity.get(e.userid, true)
+    local attacker_ent = entity.get(e.attacker, true)
+    
+    if victim_ent == me then
+        waifu_state = "disgusted"
+        waifu_state_timer = globals.realtime
+    elseif attacker_ent == me and victim_ent ~= me then
+        waifu_state = "happy"
+        waifu_state_timer = globals.realtime
+    end
+end
+
 if cheat and cheat.RegisterCallback then
+    cheat.RegisterCallback("events", function(e)
+        if e:GetName() == "player_death" then
+            on_player_death({userid = e:GetInt("userid"), attacker = e:GetInt("attacker")})
+        end
+    end)
     cheat.RegisterCallback("draw", on_render)
     cheat.RegisterCallback("destroy", on_shutdown)
 elseif events then
