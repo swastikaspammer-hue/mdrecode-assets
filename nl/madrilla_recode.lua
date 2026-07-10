@@ -2819,6 +2819,9 @@ v51.initialize_elements = function()
 local v755_utils = v51.create_tab("Utils", v51.icons.menu);
     local gc_tab = v51.create_tab("18+", v51.icons.eighteen_plus);
     local v756 = v51.create_tab("Search", v51.icons.search, true);
+    local weather_table = v51.create_table(v753, "Atmosphere", false, 2);
+    v51.new("weather_enabled", v51.create_checkbox, weather_table, "Enable Weather", false);
+    v51.new("weather_type", v51.create_list, weather_table, "Weather Type", {"none", "rain", "snow", "particle rain", "particle snow", "particle ash"});
     local gc_table = v51.create_table(gc_tab, "Goon Corner", false, 9);
     local v757 = v51.create_table(v751, "Welcome", false, 5);
     v51.create_text(v757, "Welcome text", v36("Welcome back %s", common.get_username()));
@@ -10100,3 +10103,848 @@ elseif callbacks and callbacks.Register then
     callbacks.Register("Draw", on_render)
     callbacks.Register("Unload", on_shutdown)
 end
+
+-- [[ 3D WEATHER PORT BEGIN ]] --
+-- holy fucking brainrot, just shoot me please.
+
+local NULL = 0
+
+local SplitString = function(input, sep)
+    if sep == nil then
+        sep = "%s"
+    end
+    
+    local t = {}
+    for str in string.gmatch(input, "([^" .. sep .. "]+)") do
+        table.insert(t, str)
+    end
+    
+    return t
+end
+
+-- we need "jmp ecx" to build our own custom function trampoline
+local jmp_ecx = ffi.cast("void(__thiscall*)(void)", utils.opcode_scan("engine.dll", "FF E1"))
+local GetModuleHandleA_t = ffi.typeof("uint32_t(__thiscall*)(uint32_t, const char*)")
+local GetProcAddress_t   = ffi.typeof("uint32_t(__thiscall*)(uint32_t, uint32_t, const char*)")
+
+local GetModuleHandleAddr = utils.opcode_scan("engine.dll", "FF 15 ? ? ? ? 85 C0 74 0B")
+local GetModuleHandleAPtr = ffi.cast("uint32_t**", tonumber(ffi.cast("uint32_t", GetModuleHandleAddr)) + 0x2)[0][0]
+
+local GetProcAddressAddr = utils.opcode_scan("engine.dll", "FF 15 ? ? ? ? A3 ? ? ? ? EB 05")
+local GetProcAddressPtr = ffi.cast("uint32_t**", tonumber(ffi.cast("uint32_t", GetProcAddressAddr)) + 0x2)[0][0]
+
+local GetModuleHandleAFN = ffi.cast(GetModuleHandleA_t, jmp_ecx)
+local GetProcAddressFN  = ffi.cast(GetProcAddress_t, jmp_ecx)
+local NativeGetModuleHandleA = function(moduleName)
+    return GetModuleHandleAFN(GetModuleHandleAPtr, moduleName)
+end
+
+local NativeGetProcAddress = function(moduleHandle, functionName)
+    return GetProcAddressFN(GetProcAddressPtr, moduleHandle, functionName)
+end
+
+local trampolineCache = {}
+local BindAddress = function(address, typedef)
+    if type(typedef) ~= "string" then
+        error("incorrect usage of \"BindAddress\", typedef must be string!", 2)
+    end
+
+    local split = SplitString(typedef, '(')
+    if not split[1] or not split[2] or not split[3] then
+        error("incorrect usage of \"BindAddress\", invalid typedef format -> \"" .. tostring(typedef) .. "\"", 2)
+    end
+
+    typedef = split[1] .. "(" .. split[2] .. "(unsigned int, " .. split[3]
+    if trampolineCache[typedef] then
+        return function(...)
+            return trampolineCache[typedef](address, ...)
+        end
+    end
+
+    local trampoline = ffi.cast(ffi.typeof(typedef), jmp_ecx)
+    trampolineCache[typedef] = trampoline
+    
+    return function(...)
+        return trampoline(address, ...)
+    end
+end
+
+exports = {
+    GetModuleHandle = function(moduleName)
+        return NativeGetModuleHandleA(moduleName)
+    end,
+
+    GetModuleHandleA = function(moduleName)
+        return NativeGetModuleHandleA(moduleName)
+    end,
+
+    GetProcAddress = function(moduleHandle, functionName)
+        return NativeGetProcAddress(moduleHandle, functionName)
+    end,
+
+    -- example usage:
+    --      local kernel32 = gs_exports.GetExport("kernel32.dll")
+    --      local VirtualProtect = kernel32.VirtualProtect("int(__thiscall*)(void* lpAddress, unsigned long dwSize, unsigned long flNewProtect, unsigned long* lpflOldProtect)")
+    --      -- now VirtualProtect can be used freely just like in C++.
+    GetExport = setmetatable({}, {
+        __call = function(self, moduleName)
+            local moduleHandle = gs_exports.GetModuleHandleA(moduleName)
+            if moduleHandle == NULL then
+                return error("failed to find module[\"" .. moduleName .. "\"], is it loaded?")
+            end
+
+            local functionCache = {}
+            return setmetatable({
+                moduleAddress = moduleHandle,
+            }, {
+                __index = function(self, functionName)
+                    local functionKey = moduleName .. "->" .. functionName
+                    if functionCache[functionKey] then
+                        return function(typedef)
+                            return BindAddress(functionCache[functionKey], typedef)
+                        end
+                    end
+
+                    local functionAddress = gs_exports.GetProcAddress(moduleHandle, functionName)
+                    if functionAddress == NULL then
+                        return error("failed to find function[\"" .. functionKey .. "\"]")
+                    end
+
+                    functionCache[functionKey] = functionAddress
+                    return function(typedef)
+                        return BindAddress(functionCache[functionKey], typedef)
+                    end
+                end
+            })
+        end,
+    })
+}
+
+
+
+
+
+local PAGE_READWRITE = 0x4
+
+local pointerSize = ffi.sizeof("void*")
+local kernel32 = gs_exports.GetExport("kernel32.dll")
+local VirtualProtect = kernel32.VirtualProtect("int(__thiscall*)(void* lpAddress, unsigned long dwSize, unsigned long flNewProtect, unsigned long* lpflOldProtect)")
+
+vmt_hook = {
+    VMTLibrary = (function()
+        local VMTHook = {}
+        function VMTHook:new(vmt)
+            if not vmt then
+                return error("attempted to hook with invalid vtable!", 2)
+            end
+
+            -- create vmt hook identity
+            local hook = {}
+            hook.virtualTable = ffi.cast("void***", vmt)[0]
+            hook.hookList = {}
+
+            setmetatable(hook, self)
+            self.__index = self
+
+            -- make sure this gets unhooked on script load!
+            cheat.RegisterCallback("destroy", function( )
+                return hook:unhook_all()
+            end)
+
+            print("created vmt hook target")
+            return hook
+        end
+
+        -- example usage:
+        --      local clientVMT = vmt_hook.VMTLibrary:new(get_interface("client.dll", "VClient018"))
+        --      clientVMT:hook("Client.FrameStageNotify", 37,           -- "hook name", index,
+        --                { "void(__stdcall*)(int stage)", nil },       -- { detour typedef, original typedef },
+        --                    hkFrameStageNotify)                       -- detour function
+        --      
+        --      calling original: clientVMT["Client.FrameStageNotify"](stage)
+        function VMTHook:hook(name, index, typedef, detour)
+            print("attempting to hook function")
+            if type(typedef) ~= "table" then
+                error("attempted to hook \"" .. name .. "\" with invalid typedef(table expected)")
+            end
+
+            for _, func in pairs(self.hookList) do
+                if func.functionIndex == index then
+                    return error("attempted to hook already hooked function!", 2)
+                end
+            end
+
+            local detourCallback = typedef[1] or nil
+            local originalCallback = typedef[2] or detourCallback
+
+            local protectionBackup = ffi.new("unsigned long[1]")
+
+            local originalFunction = self.virtualTable[index]
+            local callback = ffi.cast(originalCallback, originalFunction)
+            local callback2 = ffi.cast(detourCallback, detour)
+            table.insert(self.hookList, {
+                functionName = name,
+                functionIndex = index,
+                originalAddress = originalFunction,
+                originalCallback = callback,
+                functionCallback = callback2
+            })
+
+            VirtualProtect(ffi.cast("void*", self.virtualTable + index), pointerSize, PAGE_READWRITE, protectionBackup)
+            self.virtualTable[index] = ffi.cast("void*", callback2)
+            VirtualProtect(ffi.cast("void*", self.virtualTable + index), pointerSize, protectionBackup[0], protectionBackup)
+
+            self[name] = callback
+            print("successfully hooked \"" .. name .. "\"")
+            return true
+        end
+
+        function VMTHook:unhook_all()
+            for i, func in pairs(self.hookList) do
+                local protectionBackup = ffi.new("unsigned long[1]")
+
+                VirtualProtect(ffi.cast('void*', self.virtualTable + func.functionIndex), pointerSize, PAGE_READWRITE, protectionBackup)
+                self.virtualTable[func.functionIndex] = func.originalAddress
+                VirtualProtect(ffi.cast('void*', self.virtualTable + func.functionIndex), pointerSize, protectionBackup[0], protectionBackup)
+                print("successfully unhooked \"" .. func.functionName .. "\"")
+            end
+
+            self.hookList = {} -- clear out the hooked list
+            return true
+        end
+
+        return VMTHook
+    end)()
+}
+
+
+
+local function gs_render_rect(x, y, w, h, r, g, b, a)
+    local col = type(color) == "function" and color(r,g,b,a) or type(color) == "table" and color(r,g,b,a) or nil
+    local p1 = type(vector) == "function" and vector(x, y) or type(vector) == "table" and vector(x, y) or nil
+    local p2 = type(vector) == "function" and vector(x+w, y+h) or type(vector) == "table" and vector(x+w, y+h) or nil
+    if p1 and p2 and col then render.rect_filled(p1, p2, col) end
+end
+local hvc_droplet = {}
+local hvc_droplet_mt = { __index = hvc_droplet }
+
+function hvc_droplet.new(id, x, distance)
+    local object = setmetatable({
+        id = id, x = x, y = -100, distance = distance, width = 0, height = 0, render_width = 0, render_height = 0, speed = 0
+    }, hvc_droplet_mt)
+    object:setup()
+    return object
+end
+
+function hvc_droplet:setup()
+    self.width = self.distance / 2
+    self.height = self.distance * 3
+    self.speed = self.distance * 1.5
+    self.render_width = self.width
+    self.render_height = self.height
+end
+
+local hvc_storm_manager = {}
+local hvc_storm_manager_mt = { __index = hvc_storm_manager }
+
+function hvc_storm_manager.new()
+    local object = setmetatable({
+        animation = { frametime_mod = 400, droplet = { color = { r = 200, g = 200, b = 255, a = 40 } } },
+        droplets = {}, screen = { x = 0, y = 0 }, droplet_total_count = 0, droplet_current_count = 0,
+        droplet_settings = { spawn_speed = 0.005, last_spawn = globals.realtime, max_droplets = 150 },
+        wind = { last_wind = globals.realtime, delay = 0.1, increment = 0.001, in_reverse = false, current_reverse_state = false, max_speed = 1, speed_base = 0, speed = 0 },
+    }, hvc_storm_manager_mt)
+    return object
+end
+
+function hvc_storm_manager:setup()
+    local x, y = render.screen_size().x, render.screen_size().y
+    self.screen.x = x
+    self.screen.y = y
+end
+
+function hvc_storm_manager:wind_fx()
+    self.wind.speed = self.wind.speed_base * utils.random_float(0.5, 1.5)
+    local time_now = globals.realtime
+    if (time_now - self.wind.last_wind > self.wind.delay) then
+        if (self.wind.speed_base >= self.wind.max_speed) then self.wind.in_reverse = true
+        elseif (self.wind.speed_base <= 0 - self.wind.max_speed) then self.wind.in_reverse = false end
+
+        if (self.wind.in_reverse == true) then self.wind.speed_base = self.wind.speed_base - (self.wind.increment + utils.random_float(0, 0.005))
+        else self.wind.speed_base = self.wind.speed_base + (self.wind.increment + utils.random_float(0, 0.005)) end
+
+        if (self.wind.in_reverse ~= self.wind.current_reverse_state) then
+            self.wind.delay = utils.random_float(0.045, 0.2)
+            self.wind.current_reverse_state = self.wind.in_reverse
+        end
+        self.wind.last_wind = time_now
+    end
+end
+
+function hvc_storm_manager:process()
+    self:setup()
+    self:wind_fx()
+    self:rain_visuals()
+end
+
+function hvc_storm_manager:rain_visuals()
+    local frametime = globals.frametime
+    local camera_pitch, _ = render.camera_angles().x, render.camera_angles().y
+    camera_pitch = math.abs(camera_pitch)
+    camera_pitch = 0 - (camera_pitch - 95) / 95
+    if camera_pitch == 0 then camera_pitch = 0.01 end -- prevent division by zero
+
+    for _, droplet in pairs(self.droplets) do
+        self:translate_droplet(droplet, frametime, camera_pitch)
+        self:render_droplet(droplet)
+    end
+
+    local time_now = globals.realtime
+    if (time_now - self.droplet_settings.last_spawn < self.droplet_settings.spawn_speed) then return end
+    self.droplet_settings.last_spawn = time_now
+
+    if (self.droplet_current_count >= self.droplet_settings.max_droplets) then return end
+    self:add_droplet()
+end
+
+function hvc_storm_manager:add_droplet()
+    local id = self.droplet_total_count + 1
+    local droplet = hvc_droplet.new(id, utils.random_int(1, self.screen.x), utils.random_int(1, 6))
+    self.droplet_total_count = id
+    self.droplet_current_count = self.droplet_current_count + 1
+    self.droplets[id] = droplet
+end
+
+function hvc_storm_manager:translate_droplet(droplet, frametime, camera_pitch_mod)
+    droplet.render_height = math.max(1, droplet.height * camera_pitch_mod + 1)
+    droplet.y = droplet.y + frametime * (droplet.speed / camera_pitch_mod) * self.animation.frametime_mod
+    droplet.x = droplet.x + frametime * (self.wind.speed) * self.animation.frametime_mod
+
+    if (droplet.y > self.screen.y) then
+        self.droplets[droplet.id] = nil
+        self.droplet_current_count = self.droplet_current_count - 1
+    end
+end
+
+function hvc_storm_manager:render_droplet(droplet)
+    render.rect_filled(vector(
+        math.floor(droplet.x), math.floor(droplet.y), 
+        math.max(1, math.floor(droplet.render_width)), math.max(1, math.floor(droplet.render_height)),
+        self.animation.droplet.color.r, self.animation.droplet.color.g, self.animation.droplet.color.b, self.animation.droplet.color.a
+    )
+end
+
+local storm_manager = hvc_storm_manager.new()
+local particle_weather = {}
+
+function particle_weather.process(type_str)
+    if type_str == "particle rain" then
+        storm_manager.animation.droplet.color = { r = 200, g = 200, b = 255, a = 60 }
+        storm_manager.droplet_settings.max_droplets = 150
+        storm_manager.animation.frametime_mod = 400
+    elseif type_str == "particle snow" then
+        storm_manager.animation.droplet.color = { r = 255, g = 255, b = 255, a = 120 }
+        storm_manager.droplet_settings.max_droplets = 200
+        storm_manager.animation.frametime_mod = 150
+    elseif type_str == "particle ash" then
+        storm_manager.animation.droplet.color = { r = 80, g = 80, b = 80, a = 150 }
+        storm_manager.droplet_settings.max_droplets = 100
+        storm_manager.animation.frametime_mod = 80
+    else
+        return
+    end
+    storm_manager:process()
+end
+
+
+
+
+
+
+
+
+-- we have to do shit like this because of issues with ffi overuse
+collectgarbage("setpause", 100)
+collectgarbage("setstepmul", 200)
+
+-- NOTE:
+--      we should probably look into a better way of executing such engine level code
+--      for example we could use pcall or xpcall to catch any exceptions that occurr
+
+--PRECIPITATION_TYPE_NONE = -1
+--PRECIPITATION_TYPE_RAIN = 0
+--PRECIPITATION_TYPE_SNOW = 1
+--PRECIPITATION_TYPE_PARTICLERAIN = 4
+--PRECIPITATION_TYPE_PARTICLEASH = 5
+--PRECIPITATION_TYPE_PARTICLESNOW = 7
+
+ffi.cdef([[
+    typedef struct {
+        float x, y, z;
+    } Vector3;
+
+    typedef void*(*CreateClientClassFN)(int entnum, int serialNum);
+    typedef void*(*CreateEventFN)();
+    typedef struct {
+        CreateClientClassFN	m_pCreate;
+        CreateEventFN		m_pCreateEvent;
+        char*			    m_pNetworkName;
+        void*			    m_pRecvTable;
+        void*		        m_pNext;
+        int					m_ClassID;
+    } ClientClass;
+
+    typedef struct {
+        unsigned short solidCountPacked; // solidCount first 15 bits, isPacked last bit
+        unsigned short descSize;
+        void** solids;
+        char* pKeyValues;
+        void* pUserData;
+    } vcollide_t;
+]])
+
+local MAX_EDICTS = 2048
+local WeatherUtils = {}
+
+local colliderBufferSize = 546
+local colliderBuffer = ffi.new("uint8_t[546]", {
+    0xB8, 0x01, 0x00, 0x00, 0x56, 0x50, 0x48, 0x59, 0x00, 0x01, 0x00, 0x00, 0x9C, 0x01, 0x00, 0x00,
+    0x00, 0x00, 0x80, 0x3F, 0x00, 0x00, 0x80, 0x3F, 0x00, 0x00, 0x80, 0x3F, 0x00, 0x00, 0x00, 0x00,
+    0x20, 0x16, 0x6A, 0xC1, 0xC0, 0x0E, 0x1C, 0xC1, 0x80, 0x13, 0xD0, 0x3F, 0xE2, 0x26, 0x11, 0x48,
+    0xE2, 0x26, 0x11, 0x48, 0xE2, 0x26, 0x11, 0x48, 0x72, 0x4E, 0x08, 0x44, 0xD1, 0x9C, 0x01, 0x00,
+    0x80, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x49, 0x56, 0x50, 0x53,
+    0xD0, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x04, 0x15, 0x00, 0x00, 0x0C, 0x00, 0x00, 0x00,
+    0x00, 0x90, 0x00, 0x00, 0x00, 0x00, 0x0A, 0x00, 0x01, 0x00, 0x03, 0x00, 0x02, 0x00, 0x12, 0x00,
+    0x01, 0x80, 0x00, 0x00, 0x02, 0x00, 0xFD, 0x7F, 0x01, 0x00, 0x15, 0x00, 0x03, 0x00, 0x28, 0x00,
+    0x02, 0xB0, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x04, 0x00, 0x0F, 0x00, 0x01, 0x00, 0xF6, 0x7F,
+    0x03, 0xA0, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x05, 0x00, 0x15, 0x00, 0x04, 0x00, 0xFA, 0x7F,
+    0x04, 0x70, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x06, 0x00, 0x13, 0x00, 0x05, 0x00, 0xFA, 0x7F,
+    0x05, 0x60, 0x00, 0x00, 0x00, 0x00, 0xEE, 0x7F, 0x02, 0x00, 0x18, 0x00, 0x06, 0x00, 0xFA, 0x7F,
+    0x06, 0x50, 0x00, 0x00, 0x01, 0x00, 0xF1, 0x7F, 0x04, 0x00, 0x03, 0x00, 0x03, 0x00, 0xEB, 0x7F,
+    0x07, 0x40, 0x00, 0x00, 0x03, 0x00, 0xFD, 0x7F, 0x04, 0x00, 0x04, 0x00, 0x07, 0x00, 0x0C, 0x00,
+    0x08, 0x10, 0x00, 0x00, 0x05, 0x00, 0x06, 0x00, 0x07, 0x00, 0xFC, 0x7F, 0x04, 0x00, 0xEB, 0x7F,
+    0x09, 0x00, 0x00, 0x00, 0x05, 0x00, 0xED, 0x7F, 0x06, 0x00, 0x03, 0x00, 0x07, 0x00, 0xFA, 0x7F,
+    0x0A, 0x30, 0x00, 0x00, 0x07, 0x00, 0xFD, 0x7F, 0x06, 0x00, 0x03, 0x00, 0x03, 0x00, 0xF4, 0x7F,
+    0x0B, 0x20, 0x00, 0x00, 0x03, 0x00, 0xFD, 0x7F, 0x06, 0x00, 0xE8, 0x7F, 0x02, 0x00, 0xD8, 0x7F,
+    0x46, 0xAD, 0x9D, 0xC3, 0x1F, 0x0D, 0x9C, 0xC3, 0x80, 0xAE, 0xAA, 0x43, 0x00, 0x00, 0x00, 0x00,
+    0x46, 0xAD, 0x9D, 0xC3, 0x33, 0x4C, 0x92, 0x43, 0x80, 0xAE, 0xAA, 0x43, 0x00, 0x00, 0x00, 0x00,
+    0x46, 0xAD, 0x9D, 0xC3, 0x1F, 0x0D, 0x9C, 0xC3, 0x59, 0x0E, 0xA9, 0xC3, 0x00, 0x00, 0x00, 0x00,
+    0x46, 0xAD, 0x9D, 0xC3, 0x33, 0x4C, 0x92, 0x43, 0x59, 0x0E, 0xA9, 0xC3, 0x00, 0x00, 0x00, 0x00,
+    0xE4, 0x0B, 0x8F, 0x43, 0x33, 0x4C, 0x92, 0x43, 0x80, 0xAE, 0xAA, 0x43, 0x00, 0x00, 0x00, 0x00,
+    0xE4, 0x0B, 0x8F, 0x43, 0x1F, 0x0D, 0x9C, 0xC3, 0x80, 0xAE, 0xAA, 0x43, 0x00, 0x00, 0x00, 0x00,
+    0xE4, 0x0B, 0x8F, 0x43, 0x1F, 0x0D, 0x9C, 0xC3, 0x59, 0x0E, 0xA9, 0xC3, 0x00, 0x00, 0x00, 0x00,
+    0xE4, 0x0B, 0x8F, 0x43, 0x33, 0x4C, 0x92, 0x43, 0x59, 0x0E, 0xA9, 0xC3, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0xB0, 0xFE, 0xFF, 0xFF, 0x20, 0x16, 0x6A, 0xC1, 0xC0, 0x0E, 0x1C, 0xC1,
+    0x80, 0x13, 0xD0, 0x3F, 0x72, 0x4E, 0x08, 0x44, 0x8A, 0x8B, 0x9C, 0x00, 0x73, 0x6F, 0x6C, 0x69,
+    0x64, 0x20, 0x7B, 0x0A, 0x22, 0x69, 0x6E, 0x64, 0x65, 0x78, 0x22, 0x20, 0x22, 0x30, 0x22, 0x0A,
+    0x22, 0x6D, 0x61, 0x73, 0x73, 0x22, 0x20, 0x22, 0x35, 0x30, 0x30, 0x30, 0x30, 0x2E, 0x30, 0x30,
+    0x30, 0x30, 0x30, 0x30, 0x22, 0x0A, 0x22, 0x73, 0x75, 0x72, 0x66, 0x61, 0x63, 0x65, 0x70, 0x72,
+    0x6F, 0x70, 0x22, 0x20, 0x22, 0x64, 0x65, 0x66, 0x61, 0x75, 0x6C, 0x74, 0x22, 0x0A, 0x22, 0x76,
+    0x6F, 0x6C, 0x75, 0x6D, 0x65, 0x22, 0x20, 0x22, 0x31, 0x35, 0x30, 0x38, 0x30, 0x32, 0x33, 0x32,
+    0x30, 0x35, 0x38, 0x38, 0x38, 0x30, 0x2E, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x22, 0x0A, 0x7D,
+    0x0A, 0x00
+})
+
+local _cache = {
+    interfaces = {}
+}
+
+local interfacePtr = ffi.typeof('void***')
+local function get_interface(module, name)
+    local key = module .. ":" .. name
+    if _cache.interfaces[key] then
+        return _cache.interfaces[key]
+    end
+
+    local raw = utils.create_interface(module, name)
+    if not raw then
+        return nil
+    end
+
+    local casted = ffi.cast(interfacePtr, raw)
+    _cache.interfaces[key] = casted
+
+    return casted
+end
+
+local ctype_cache = {}
+local function get_ctype(type_str)
+    local ct = ctype_cache[type_str]
+    if ct then return ct end
+
+    ct = ffi.typeof(type_str)
+    ctype_cache[type_str] = ct
+
+    return ct
+end
+
+local function get_vfunc(vtable, index, ctype)
+    return ffi.cast(get_ctype(ctype), vtable[index])
+end
+
+function WeatherUtils:GetPhysicsCollision()
+    local physicsCollisionInterfaceRaw = get_interface("vphysics.dll", "VPhysicsCollision007")
+    if not physicsCollisionInterfaceRaw then 
+        return nil 
+    end
+
+    return physicsCollisionInterfaceRaw
+end
+
+function WeatherUtils:GetAllClientClasses()
+    local clientInterfaceRaw = get_interface("client.dll", "VClient018")
+    if not clientInterfaceRaw then 
+        return nil
+    end
+
+    local clientVTable = clientInterfaceRaw[0]
+
+    local GetAllClasses = get_vfunc(clientVTable, 8, "ClientClass*(__thiscall*)(void*)")
+    return GetAllClasses(clientInterfaceRaw)
+end
+
+function WeatherUtils:GetPrecipitationClass()
+    local currentClass = WeatherUtils:GetAllClientClasses()
+    if not currentClass then
+        return nil
+    end
+
+    while currentClass and currentClass ~= ffi.NULL do
+        if currentClass.m_ClassID == 138 then
+            return currentClass
+        end
+
+        if not currentClass.m_pNext or currentClass.m_pNext == ffi.NULL then
+            break
+        end
+
+        currentClass = ffi.cast("ClientClass*", currentClass.m_pNext)
+    end
+    
+    return nil
+end
+
+function WeatherUtils:GetNetworkable(entityIndex)
+    local entityListInterfaceRaw = get_interface("client.dll", "VClientEntityList003")
+    if not entityListInterfaceRaw then 
+        return nil 
+    end
+
+    local entityList = entityListInterfaceRaw
+    local entityListVTable = entityList[0]
+
+    local GetClientNetworkable = get_vfunc(entityListVTable, 0, "void*(__thiscall*)(void*, int)")
+    return GetClientNetworkable(entityList, entityIndex)
+end
+
+local weatherData = {
+    uniqueModelIndex = (4096 - 1), -- used for matching the model index
+    hasInitialized = false,
+    precipitationClass = nil,
+
+    weatherEntity = nil,
+    networkableEntity = nil,
+    weatherEntityIndex = -1,
+    weatherType = -1,
+
+    vCollide = ffi.new("vcollide_t[1]"),
+    vCollideInit = false
+}
+
+local function IsTypeActive(precipType)
+    if precipType == -1 and weatherData.weatherEntity == nil then
+        return true
+    end
+
+    if weatherData.weatherEntity == nil then
+        return false
+    end
+
+    if weatherData.weatherType ~= precipType then
+        return false
+    end
+
+    return true
+end
+
+local function UnloadEntity()
+    if not weatherData.hasInitialized then
+        return
+    end
+
+    if weatherData.weatherEntity == nil then
+        return
+    end
+
+    local physicsCollision = WeatherUtils:GetPhysicsCollision()
+    if physicsCollision ~= nil and physicsCollision ~= ffi.NULL then
+        local physicsCollisionVTable = physicsCollision[0]
+        local VCollideUnload = get_vfunc(physicsCollisionVTable, 37, "void(__thiscall*)(void*, vcollide_t*)")
+        
+        if weatherData.vCollideInit then
+            VCollideUnload(physicsCollision, weatherData.vCollide)
+            weatherData.vCollideInit = false
+        end
+    end
+
+    print("preparing unload")
+    entity.set_prop(weatherData.weatherEntityIndex, "m_nModelIndex", 0) -- prevent any lingering entity from matching our vcollide data
+
+    local weatherEntityAddr = tonumber(ffi.cast("uintptr_t", weatherData.weatherEntity))
+    --local m_bDormant = ffi.cast("bool*", (weatherEntityAddr + 0xED))
+
+    --m_bDormant[0] = true
+
+    local networkable = ffi.cast("void***", weatherData.weatherEntity)
+    local networkableVTable = networkable[0]
+
+    local GetIClientUnknown = get_vfunc(networkableVTable, 0, "void***(__thiscall*)(void*)")
+    local NotifyShouldTransmit = get_vfunc(networkableVTable, 3, "void(__thiscall*)(void*, int)")
+
+    --NotifyShouldTransmit(networkable, 1)
+
+    local clientUnknown = GetIClientUnknown(networkable)
+    if clientUnknown and clientUnknown ~= ffi.NULL then
+        local clientUnknownVTable = clientUnknown[0]
+        local GetClientThinkable = get_vfunc(clientUnknownVTable, 8, "void***(__thiscall*)(void*)")
+
+        local clientThinkable = GetClientThinkable(clientUnknown)
+        if clientThinkable and clientThinkable ~= ffi.NULL then
+            local clientThinkableVTable = clientThinkable[0]
+            local Release = get_vfunc(clientThinkableVTable, 4, "void(__thiscall*)(void*)")
+            Release(clientThinkable)
+        end
+    end
+
+    weatherData.hasInitialized = false
+    print("finished unload")
+end
+
+local function UpdateWeatherBounds()
+    if not weatherData.weatherEntity then
+        return
+    end
+
+    --print("preparing update of weather bounds...")
+    local networkable = ffi.cast("void***", weatherData.weatherEntity)
+    local networkableVTable = networkable[0]
+    local GetIClientUnknown = get_vfunc(networkableVTable, 0, "void***(__thiscall*)(void*)")
+
+    local clientUnknown = GetIClientUnknown(networkable)
+    if clientUnknown and clientUnknown ~= ffi.NULL then
+        local clientUnknownVTable = clientUnknown[0]
+        local GetCollideable = get_vfunc(clientUnknownVTable, 3, "void***(__thiscall*)(void*)")
+
+        local collideable = GetCollideable(clientUnknown)
+        if collideable and collideable ~= ffi.NULL then
+            local collideableVTable = collideable[0]
+
+            local mins = get_vfunc(collideableVTable, 1, "Vector3*(__thiscall*)(void*)")(collideable)
+            local maxs = get_vfunc(collideableVTable, 2, "Vector3*(__thiscall*)(void*)")(collideable)
+
+            if mins and maxs and mins ~= ffi.NULL and maxs ~= ffi.NULL then
+                mins.x, mins.y, mins.z = -2048, -2048, -2048
+                maxs.x, maxs.y, maxs.z = 2048, 2048, 2048
+            end
+        end
+    end
+
+    --print("finished updating weather bounds")
+end
+
+local function ApplyWeatherEffect(precipType)
+    if precipType == -1 then
+        return
+    end
+
+    if not weatherData.precipitationClass.m_pCreate then
+        return
+    end
+
+    weatherData.networkableEntity = weatherData.precipitationClass.m_pCreate(MAX_EDICTS - 1, 0)
+    if not weatherData.networkableEntity or weatherData.networkableEntity == ffi.NULL then
+        print("failed to create precipitation entity!\n")
+        return
+    end
+
+    weatherData.weatherEntityIndex = MAX_EDICTS - 1
+    weatherData.weatherEntity = WeatherUtils:GetNetworkable(weatherData.weatherEntityIndex)
+    if not weatherData.weatherEntity or weatherData.weatherEntity == ffi.NULL then
+        print("invalid weather networkable!")
+        return
+    end
+
+    weatherData.weatherType = precipType
+    weatherData.vCollideInit = false
+    ffi.fill(weatherData.vCollide[0], ffi.sizeof(weatherData.vCollide[0]))
+
+    local physicsCollision = WeatherUtils:GetPhysicsCollision()
+    if physicsCollision ~= nil and physicsCollision ~= ffi.NULL then
+        local physicsCollisionVTable = physicsCollision[0]
+        local VCollideLoad = get_vfunc(physicsCollisionVTable, 36, "void(__thiscall*)(void*, vcollide_t*, int, const char*, int, bool)")
+        
+        if not weatherData.vCollideInit then
+            VCollideLoad(physicsCollision, weatherData.vCollide, 1, ffi.cast("const char*", colliderBuffer), colliderBufferSize, false)
+            weatherData.vCollideInit = true
+
+            print("loaded vcollide data")
+        end
+    end
+
+    local networkable = ffi.cast("void***", weatherData.weatherEntity)
+    local networkableVTable = networkable[0]
+    local GetIClientUnknown = get_vfunc(networkableVTable, 0, "void***(__thiscall*)(void*)")
+    local PreDataUpdate = get_vfunc(networkableVTable, 6, "void(__thiscall*)(void*, int)")
+    local OnPreDataChanged = get_vfunc(networkableVTable, 4, "void(__thiscall*)(void*, int)")
+    local OnDataChanged = get_vfunc(networkableVTable, 5, "void(__thiscall*)(void*, int)")
+    local PostDataUpdate = get_vfunc(networkableVTable, 7, "void(__thiscall*)(void*, int)")
+    local NotifyShouldTransmit = get_vfunc(networkableVTable, 3, "void(__thiscall*)(void*, int)")
+
+    entity.set_prop(weatherData.weatherEntityIndex, "m_nPrecipType", weatherData.weatherType)
+    entity.set_prop(weatherData.weatherEntityIndex, "m_nModelIndex", weatherData.uniqueModelIndex)
+
+    local weatherEntityAddr = tonumber(ffi.cast("uintptr_t", weatherData.weatherEntity))
+    local m_bParticlePrecipInitialized = ffi.cast("bool*", (weatherEntityAddr + 0xAA1))
+    local m_bDormant = ffi.cast("bool*", (weatherEntityAddr + 0xED))
+
+    m_bParticlePrecipInitialized[0] = false -- force particle reinitialization
+    m_bDormant[0] = false
+    
+    -- another requirement might be setting alpha modulation from the alpha property(GetClientAlphaProperty()->SetAlphaModulation)
+    local clientUnknown = GetIClientUnknown(networkable)
+    if clientUnknown and clientUnknown ~= ffi.NULL then
+        local clientUnknownVTable = clientUnknown[0]
+        local GetClientAlphaProperty = get_vfunc(clientUnknownVTable, 9, "void***(__thiscall*)(void*)")
+
+        local clientAlphaProperty = GetClientAlphaProperty(clientUnknown)
+        if clientAlphaProperty and clientAlphaProperty ~= ffi.NULL then
+            local clientAlphaPropertyVTable = clientAlphaProperty[0]
+            local SetAlphaModulation = get_vfunc(clientAlphaPropertyVTable, 1, "void(__thiscall*)(void*, unsigned char)")
+
+            SetAlphaModulation(clientAlphaProperty, 255)
+            print("set precipitation alpha")
+        end
+    end
+
+    UpdateWeatherBounds()
+
+    PreDataUpdate(networkable, 0)
+    OnPreDataChanged(networkable, 0)
+    OnDataChanged(networkable, 0)
+    PostDataUpdate(networkable, 0)
+
+    --NotifyShouldTransmit(networkable, 0) -- force dormancy to false
+
+    weatherData.hasInitialized = true
+
+    print("finished initializing weather")
+end
+
+local function CleanUp()
+    if weatherData.weatherEntity == nil then
+        return
+    end
+
+    UnloadEntity()
+
+    weatherData.weatherEntity = nil
+    weatherData.weatherEntityIndex = -1
+    weatherData.weatherType = -1
+end
+
+local function Run()
+    if weatherData.precipitationClass == nil then
+        weatherData.precipitationClass = WeatherUtils:GetPrecipitationClass()
+        if weatherData.precipitationClass == nil then
+            return
+        end
+    end
+
+    local precipType = v51.get("weather_type") or "none"
+    local precipitationType = -1
+
+    if precipType == "rain" then
+        precipitationType = 0
+    elseif precipType == "snow" then
+        precipitationType = 1
+    elseif precipType == "particle rain" or precipType == "particle snow" or precipType == "particle ash" then
+        precipitationType = -1
+    elseif precipType == "none" then
+        precipitationType = -1
+    else
+        print("UNHANDLED INDEX DURING WEATHER HANDLING!")
+        return
+    end
+
+    if IsTypeActive(precipitationType) then
+        if precipitationType ~= -1 then
+            UpdateWeatherBounds()
+        end
+        return -- don't set-up precipitation multiple times for one type
+    end
+
+    CleanUp()
+    if precipitationType ~= -1 then
+        ApplyWeatherEffect(precipitationType)
+    end
+end
+
+local FRAME_RENDER_START = 5
+
+local modelInfoVMT = vmt_hook.VMTLibrary:new(get_interface("engine.dll", "VModelInfoClient004"))
+local clientVMT = vmt_hook.VMTLibrary:new(get_interface("client.dll", "VClient018"))
+function hkFrameStageNotify(stage)
+    --print( "running stage: " .. stage)
+    if stage == FRAME_RENDER_START then
+        if not v51.get("weather_enabled") or v51.get("weather_type") or "none" == "none" then
+            CleanUp()
+        else
+            Run()
+        end
+    end
+
+    return clientVMT["Client.FrameStageNotify"](stage)
+end
+
+function hkGetVCollide(ecx, edx, modelIndex)
+    local ret = modelInfoVMT["ModelInfoClient.GetVCollide"](ecx, modelIndex)
+    if modelIndex ~= weatherData.uniqueModelIndex or not weatherData.vCollideInit then
+        return ret
+    end
+
+    print( "attempted to return vCollide!")
+    return weatherData.vCollide
+end
+
+clientVMT:hook("Client.FrameStageNotify", 37,
+                    { "void(__stdcall*)(int stage)", nil },
+                        hkFrameStageNotify)
+
+modelInfoVMT:hook("ModelInfoClient.GetVCollide", 6,
+                    { "vcollide_t*(__fastcall*)(void* _this, void* edx, int modelIndex)", "vcollide_t*(__thiscall*)(void* _this, int modelIndex)" },
+                        hkGetVCollide)
+
+cheat.RegisterCallback("draw", function()
+    if not v51.get("weather_enabled") then return end
+    local pType = v51.get("weather_type") or "none"
+    if string.match(pType, "particle") then
+        particle_weather.process(pType)
+    end
+end)
+
+precipitation = {    
+    OnNetUpdateEnd = function()
+
+    end,
+
+    OnRoundStart = function()
+        if not v51.get("weather_enabled") or v51.get("weather_type") or "none" == "none" then
+            return
+        end
+
+        UpdateWeatherBounds()
+    end
+}
+
+
+-- [[ 3D WEATHER PORT END ]] --
