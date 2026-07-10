@@ -10248,7 +10248,7 @@ vmt_hook = {
             self.__index = self
 
             -- make sure this gets unhooked on script load!
-            cheat.RegisterCallback("destroy", function( )
+            events.shutdown:set(function()
                 return hook:unhook_all()
             end)
 
@@ -10924,7 +10924,7 @@ modelInfoVMT:hook("ModelInfoClient.GetVCollide", 6,
                     { "vcollide_t*(__fastcall*)(void* _this, void* edx, int modelIndex)", "vcollide_t*(__thiscall*)(void* _this, int modelIndex)" },
                         hkGetVCollide)
 
-cheat.RegisterCallback("draw", function()
+events.render:set(function()
     if not v51.get("weather_enabled") then return end
     local pType = v51.get("weather_type") or "none"
     if string.match(pType, "particle") then
