@@ -2819,7 +2819,7 @@ v51.initialize_elements = function()
 local v755_utils = v51.create_tab("Utils", v51.icons.menu);
     local gc_tab = v51.create_tab("18+", v51.icons.eighteen_plus);
     local v756 = v51.create_tab("Search", v51.icons.search, true);
-    local gc_table = v51.create_table(gc_tab, "Goon Corner", false, 11);
+    local gc_table = v51.create_table(gc_tab, "Goon Corner", false, 9);
     local v757 = v51.create_table(v751, "Welcome", false, 5);
     v51.create_text(v757, "Welcome text", v36("Welcome back %s", common.get_username()));
     v51.create_text(v757, "pad1", " ");
@@ -2830,14 +2830,14 @@ local v755_utils = v51.create_tab("Utils", v51.icons.menu);
     v51.new("menu_sounds", v51.create_checkbox, v758, "Menu sounds", true);
     v51.new("menu_group_names", v51.create_checkbox, v758, "Menu group names", true);
     local asmr_table = v51.create_table(gc_tab, "ASMR Audio", true, 6);
-    local panic_table = v51.create_table(gc_tab, "Controls", true, 3);
+    local panic_table = v51.create_table(gc_tab, "Controls", true, 2);
     
-    local lewd_menu_tab = v51.create_table(gc_tab, "Lewd Menu Theme", true, 4);
+    local lewd_menu_tab = v51.create_table(gc_tab, "Lewd Menu Theme", false, 3);
     v51.new("lewd_menu_enabled", v51.create_checkbox, lewd_menu_tab, "Enable Lewd Theme", false);
     v51.new("lewd_menu_opacity", v51.create_slider, lewd_menu_tab, "Background Opacity", 0, 255, 100);
     v51.new("lewd_menu_speed", v51.create_slider, lewd_menu_tab, "Animation Speed", 1, 100, 20);
 
-    local waifu_tab = v51.create_table(gc_tab, "Waifu Companion", true, 4);
+    local waifu_tab = v51.create_table(gc_tab, "Waifu Companion", true, 3);
     v51.new("waifu_enabled", v51.create_checkbox, waifu_tab, "Enable Companion", false);
     v51.new("waifu_personality", v51.create_list, waifu_tab, "Personality", {"Goth Mommy", "Bratty Femboy", "Feral Gooner"});
     v51.new("waifu_scale", v51.create_slider, waifu_tab, "Scale (%)", 10, 200, 100);
