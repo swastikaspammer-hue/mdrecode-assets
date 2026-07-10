@@ -89,7 +89,7 @@ local function check_for_updates()
                 
                 if remote_version ~= M_VERSION and remote_version ~= "" then
                     _G.MADRILLA_UPDATE_AVAILABLE = remote_version
-                    print("[Madrilla Recode] A new update (" .. remote_version .. ") is available on the GitHub repository!")
+                    print("[Madrilla Recode] A new update (" .. remote_version .. ") is available on the Discord server!")
                 end
             else
                 kernel32.CloseHandle(hFile)
@@ -7668,7 +7668,7 @@ do
                     v49.attach("shutdown", v54.destroy, "lua::hitchance::destroy");
                     v311.add(v36("Welcome back %s. Last update was %s", common.get_username(), v46), v51.icons.open_check);
                     if _G.MADRILLA_UPDATE_AVAILABLE then
-                        v311.add(v36("Update %s is available on GitHub!", _G.MADRILLA_UPDATE_AVAILABLE), v51.icons.cloud);
+                        v311.add(v36("Update %s is available on Discord!", _G.MADRILLA_UPDATE_AVAILABLE), v51.icons.cloud);
                     end
                     v154.play_sound("MadrillaSounds/menu_load.wav", 1, 100, 0, 0);
                     return;
