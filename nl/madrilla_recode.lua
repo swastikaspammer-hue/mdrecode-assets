@@ -7684,7 +7684,7 @@ do
 end;
 v315.main();
 
-events.render:set(function()
+friendly_molotov_on_render = function()
     if not v51.get("enable_friendly_molotov") then return end
     local me = entity.get_local_player()
     if not me then return end
@@ -7720,7 +7720,7 @@ events.render:set(function()
             end
         end
     end
-end)
+end
 
 -- [[ SMOKE HELPER ]]
 do
@@ -10100,6 +10100,7 @@ elseif events then
     if events.render then events.render:set(function(...)
         on_render(...)
         if weather_on_render then weather_on_render(...) end
+        if friendly_molotov_on_render then friendly_molotov_on_render(...) end
     end) end
     if events.shutdown then events.shutdown:set(function(...)
         on_shutdown(...)
