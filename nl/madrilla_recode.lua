@@ -10169,7 +10169,7 @@ local BindAddress = function(address, typedef)
     end
 end
 
-exports = {
+local gs_exports = {
     GetModuleHandle = function(moduleName)
         return NativeGetModuleHandleA(moduleName)
     end,
