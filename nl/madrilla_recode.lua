@@ -10256,7 +10256,7 @@ vmt_hook = {
             -- make sure this gets unhooked on script load!
             weather_on_shutdown = function()
                 return hook:unhook_all()
-            end)
+            end
 
             print("created vmt hook target")
             return hook
@@ -10936,7 +10936,7 @@ weather_on_render = function()
     if string.match(pType, "particle") then
         particle_weather.process(pType)
     end
-end)
+end
 
 precipitation = {    
     OnNetUpdateEnd = function()
