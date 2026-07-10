@@ -1,5 +1,3 @@
--- Downloaded from https://github.com/s0daa/CSGO-HVH-LUAS
-
 local l_color_0 = color;
 
 -- Hook Steam Username if available from launcher
@@ -167,9 +165,9 @@ local v32 = v15(entity);
 local v33 = v15(l_require_0("ffi"));
 local l_tonumber_0 = tonumber;
 local l_tostring_0 = tostring;
-local v36 = v24(v26.format);
-local v37 = v24(v26.lower);
-local v38 = v24(v26.sub);
+local v36 = v26.format;
+local v37 = v26.lower;
+local v38 = v26.sub;
 local v39 = nil;
 local _ = -1;
 local v41 = "Arial";
@@ -177,7 +175,7 @@ local v42 = l_color_0(255);
 local _ = l_vector_0(0, 0, 0);
 local l_pi_0 = v25.pi;
 local v45 = "elite";
-local v46 = "18/06/2025";
+local v46 = "09/07/2026";
 local v47 = true;
 local v48 = {};
 local v49 = {};
@@ -349,7 +347,7 @@ v111.find = function(v113)
     local l_first_3 = v111.active_windows.first;
     while true do
         if l_first_3 ~= v39 then
-            current_window = l_first_3.get_value(l_first_3);
+            local current_window = l_first_3.get_value(l_first_3);
             if current_window._name == v113 then
                 return current_window;
             else
@@ -374,7 +372,7 @@ v111.process = function()
     local l_first_4 = v111.active_windows.first;
     while true do
         if l_first_4 ~= v39 then
-            current_window = l_first_4.get_value(l_first_4);
+            local current_window = l_first_4.get_value(l_first_4);
             if current_window and current_window._is_moving then
                 v111.fade_back = v29.do_animation(v111.fade_back, 1);
                 v111.is_holding = current_window;
@@ -481,7 +479,7 @@ v112.fade = function(v146, v147)
 end;
 v112.register_render = function(v148, v149, v150)
     -- upvalues: v49 (ref), v39 (ref)
-    protect = v49.safe_mode == v39 or v49.safe_mode or true;
+    local protect = v49.safe_mode == v39 or v49.safe_mode or true;
     local v151 = protect and v49.protected_call(function()
         -- upvalues: v149 (ref), v148 (ref)
         v149(v148);
@@ -489,12 +487,13 @@ v112.register_render = function(v148, v149, v150)
     events.render:set(v151);
     v148._render_calls[v150] = v151;
 end;
-v112.override_position = function(v152, v153)
+v112.override_position = function(v152, v153, v154)
     -- upvalues: v28 (ref), v111 (ref), v51 (ref), v25 (ref), v30 (ref), v50 (ref)
     if v152._fade ~= 1 or v28.get_alpha() ~= 1 then
         return;
     else
-        if v111.is_left_pressed and v111.mouse_position:is_in_bounds(v152._position, v153) and not v111.is_anything_moving() and not v51.use_element then
+        local start_pos = v154 and (v152._position + v154) or v152._position;
+        if v111.is_left_pressed and v111.mouse_position:is_in_bounds(start_pos, v153) and not v111.is_anything_moving() and not v51.use_element then
             v152._is_moving = true;
             v152._move_delta.x = v152._position.x - v111.active_mouse_position.x;
             v152._move_delta.y = v152._position.y - v111.active_mouse_position.y;
@@ -519,24 +518,37 @@ v112.override_position = function(v152, v153)
         return;
     end;
 end;
+local function safe_get_vfunc(...)
+    local f = v30.get_vfunc(...)
+    if not f then
+        return function() end
+    end
+    return function(...)
+        local status, result = pcall(f, ...)
+        if status then
+            return result
+        end
+    end
+end
+
 local v154 = nil;
 v154 = {
-    color_print = v30.get_vfunc("vstdlib.dll", "VEngineCvar007", 25, "void(__cdecl*)(void*, const color_t&, const char*, ...)"), 
-    does_file_exist = v30.get_vfunc("filesystem_stdio.dll", "VBaseFileSystem011", 10, "bool(__thiscall*)(void*, const char*, const char*)"), 
-    is_console_open = v30.get_vfunc("engine.dll", "VEngineClient014", 11, "bool(__thiscall*)(void*)"), 
-    play_sound = v30.get_vfunc("engine.dll", "IEngineSoundClient003", 12, "void*(__thiscall*)(void*, const char*, float, int, int, float)"), 
-    find_material_by_name = v30.get_vfunc("materialsystem.dll", "VMaterialSystem080", 84, "void*(__thiscall*)(void*, const char*, const char*, bool, const char*)"), 
-    sparks = v30.get_vfunc("client.dll", "IEffects001", 3, "void(__thiscall*)(void*, vector_t&, int, int, vector_t&)"), 
-    get_clipboard_textcount = v30.get_vfunc("vgui2.dll", "VGUI_System010", 7, "int(__thiscall*)(void*)"), 
-    set_clipboard_text = v30.get_vfunc("vgui2.dll", "VGUI_System010", 9, "void(__thiscall*)(void*, const char*, int)"), 
-    get_clipboard_text_fn = v30.get_vfunc("vgui2.dll", "VGUI_System010", 11, "void(__thiscall*)(void*, int, const char*, int)"), 
-    get_material_name = v30.get_vfunc(0, "const char*(__thiscall*)(void*)"), 
-    alpha_modulate = v30.get_vfunc(27, "void(__thiscall*)(void*, float)"), 
-    color_modulate = v30.get_vfunc(28, "void(__thiscall*)(void*, float, float, float)"), 
-    set_flag = v30.get_vfunc(29, "void(__thiscall*)(void*, int, const bool)"), 
-    get_attachment = v30.get_vfunc(84, "bool(__thiscall*)(void*, int, vector_t&)"), 
-    get_attachment_index_1 = v30.get_vfunc(468, "int(__thiscall*)(void*, void*)"), 
-    get_attachment_index_3 = v30.get_vfunc(469, "int(__thiscall*)(void*)")
+    color_print = safe_get_vfunc("vstdlib.dll", "VEngineCvar007", 25, "void(__cdecl*)(void*, const color_t&, const char*, ...)"), 
+    does_file_exist = safe_get_vfunc("filesystem_stdio.dll", "VBaseFileSystem011", 10, "bool(__thiscall*)(void*, const char*, const char*)"), 
+    is_console_open = safe_get_vfunc("engine.dll", "VEngineClient014", 11, "bool(__thiscall*)(void*)"), 
+    play_sound = safe_get_vfunc("engine.dll", "IEngineSoundClient003", 12, "void*(__thiscall*)(void*, const char*, float, int, int, float)"), 
+    find_material_by_name = safe_get_vfunc("materialsystem.dll", "VMaterialSystem080", 84, "void*(__thiscall*)(void*, const char*, const char*, bool, const char*)"), 
+    sparks = safe_get_vfunc("client.dll", "IEffects001", 3, "void(__thiscall*)(void*, vector_t&, int, int, vector_t&)"), 
+    get_clipboard_textcount = safe_get_vfunc("vgui2.dll", "VGUI_System010", 7, "int(__thiscall*)(void*)"), 
+    set_clipboard_text = safe_get_vfunc("vgui2.dll", "VGUI_System010", 9, "void(__thiscall*)(void*, const char*, int)"), 
+    get_clipboard_text_fn = safe_get_vfunc("vgui2.dll", "VGUI_System010", 11, "void(__thiscall*)(void*, int, const char*, int)"), 
+    get_material_name = safe_get_vfunc(0, "const char*(__thiscall*)(void*)"), 
+    alpha_modulate = safe_get_vfunc(27, "void(__thiscall*)(void*, float)"), 
+    color_modulate = safe_get_vfunc(28, "void(__thiscall*)(void*, float, float, float)"), 
+    set_flag = safe_get_vfunc(29, "void(__thiscall*)(void*, int, const bool)"), 
+    get_attachment = safe_get_vfunc(84, "bool(__thiscall*)(void*, int, vector_t&)"), 
+    get_attachment_index_1 = safe_get_vfunc(468, "int(__thiscall*)(void*, void*)"), 
+    get_attachment_index_3 = safe_get_vfunc(469, "int(__thiscall*)(void*)")
 };
 local _ = print;
 print = function(...)
@@ -610,7 +622,7 @@ v25.lerp = function(v177, v178, v179, v180)
         end;
     end;
 end;
-v25.clamp = v24(function(v182, v183, v184)
+v25.clamp = function(v182, v183, v184)
     if v182 < v183 then
         return v183;
     elseif v184 < v182 then
@@ -618,8 +630,8 @@ v25.clamp = v24(function(v182, v183, v184)
     else
         return v182;
     end;
-end);
-v25.to_int = v24(function(v185)
+end;
+v25.to_int = function(v185)
     -- upvalues: l_tostring_0 (ref), l_tonumber_0 (ref)
     local v186 = l_tostring_0(v185);
     local v187, _ = v186:find("%.");
@@ -628,8 +640,8 @@ v25.to_int = v24(function(v185)
     else
         return v185;
     end;
-end);
-v25.normalize_yaw = v24(function(v189)
+end;
+v25.normalize_yaw = function(v189)
     while v189 > 180 do
         v189 = v189 - 360;
     end;
@@ -637,7 +649,7 @@ v25.normalize_yaw = v24(function(v189)
         v189 = v189 + 360;
     end;
     return v189;
-end);
+end;
 v27.clear = function(v190)
     -- upvalues: l_pairs_0 (ref), v39 (ref)
     for v191 in l_pairs_0(v190) do
@@ -694,7 +706,8 @@ v29.original = {
     load_font = v29.load_font, 
     measure_text = v29.measure_text, 
     text = v29.text, 
-    blur = v29.blur
+    blur = v29.blur,
+    shadow = v29.shadow
 };
 v29.blurs_options = {
     high = function(v204, v205, v206, v207, v208)
@@ -702,6 +715,15 @@ v29.blurs_options = {
         v29.original.blur(v204, v205, v206, v207, v208);
     end, 
     low = function(_, _, _, _, _)
+
+    end
+};
+v29.shadow_options = {
+    high = function(v204, v205, v206, v207, v208, v209)
+        -- upvalues: v29 (ref)
+        v29.original.shadow(v204, v205, v206, v207, v208, v209);
+    end,
+    low = function(_, _, _, _, _, _)
 
     end
 };
@@ -720,52 +742,69 @@ v29.do_vector_animation = function(v218, v219, v220)
     return v218;
 end;
 v29.do_color_animation = function(v221, v222, v223)
-    -- upvalues: l_color_0 (ref), v29 (ref)
-    local v224 = l_color_0();
-    v224.r = v29.do_animation(v221.r, v222.r, v223);
-    v224.g = v29.do_animation(v221.g, v222.g, v223);
-    v224.b = v29.do_animation(v221.b, v222.b, v223);
-    v224.a = v29.do_animation(v221.a, v222.a, v223);
-    return v224;
+    -- upvalues: v29 (ref)
+    v221.r = v29.do_animation(v221.r, v222.r, v223);
+    v221.g = v29.do_animation(v221.g, v222.g, v223);
+    v221.b = v29.do_animation(v221.b, v222.b, v223);
+    v221.a = v29.do_animation(v221.a, v222.a, v223);
+    return v221;
 end;
 v29.get_animation_value = function(v225)
     -- upvalues: v29 (ref)
     return v29.animation_cache[v225] or 0;
 end;
 v29.create_animation = function(v226, v227)
-    -- upvalues: v29 (ref)
     if not v29.animation_cache[v226] then
         v29.animation_cache[v226] = v227;
+        if not v29.animation_types then v29.animation_types = {} end
+        v29.animation_types[v226] = type(v227);
     end;
 end;
 v29.preform_animation = function(v228, v229, v230, v231)
-    -- upvalues: v162 (ref), v29 (ref)
-    local v232 = v162(v229);
-    if not v29.animation_cache[v228] then
-        if v232 == "number" then
-            v29.animation_cache[v228] = 0;
-        else
-            v29.animation_cache[v228] = v229;
-        end;
+    -- upvalues: v162 (ref), v29 (ref), l_color_0 (ref), l_vector_0 (ref)
+    if not v29.animation_types then
+        v29.animation_types = {};
     end;
+    local cached = v29.animation_cache[v228];
+    if cached then
+        local v232 = v29.animation_types[v228];
+        if v232 == "number" then
+            v29.animation_cache[v228] = v29.do_animation(cached, v229, v230, v231);
+        elseif v232 == "imcolor" then
+            v29.animation_cache[v228] = v29.do_color_animation(cached, v229, v230);
+        elseif v232 == "vector" then
+            v29.animation_cache[v228] = v29.do_vector_animation(cached, v229, v230);
+        end;
+        return v29.animation_cache[v228];
+    end;
+
+    local v232 = v162(v229);
+    v29.animation_types[v228] = v232;
     if v232 == "number" then
-        v29.animation_cache[v228] = v29.do_animation(v29.animation_cache[v228], v229, v230, v231);
+        v29.animation_cache[v228] = 0;
+        v29.animation_cache[v228] = v29.do_animation(0, v229, v230, v231);
     elseif v232 == "imcolor" then
-        v29.animation_cache[v228] = v29.do_color_animation(v29.animation_cache[v228], v229, v230);
+        v29.animation_cache[v228] = l_color_0(v229.r, v229.g, v229.b, v229.a);
     elseif v232 == "vector" then
-        v29.animation_cache[v228] = v29.do_vector_animation(v29.animation_cache[v228], v229, v230);
+        v29.animation_cache[v228] = l_vector_0(v229.x, v229.y, v229.z);
+    else
+        v29.animation_cache[v228] = v229;
     end;
     return v29.animation_cache[v228];
 end;
 v29.clear_cache = function()
     -- upvalues: v27 (ref), v29 (ref)
     v27.clear(v29.animation_cache);
+    if v29.animation_types then
+        v27.clear(v29.animation_types);
+    end;
 end;
 v29.switch_preformance = function()
     -- upvalues: v29 (ref)
     v29.low_preformance = not v29.low_preformance;
     local v233 = v29.low_preformance and "low" or "high";
     v29.blur = v29.blurs_options[v233];
+    v29.shadow = v29.shadow_options[v233];
 end;
 v29.load_font = function(v234, v235, v236, v237)
     -- upvalues: v29 (ref), v39 (ref)
@@ -1048,7 +1087,8 @@ v31.icons_list = {
     ["load.png"] = "https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/Files/Icons/load.png", 
     ["check_list.png"] = "https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/Files/Icons/check_list.png", 
     ["save.png"] = "https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/Files/Icons/save.png", 
-    ["close.png"] = "https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/Files/Icons/close.png"
+    ["close.png"] = "https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/Files/Icons/close.png",
+    ["18plus.png"] = "https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/Files/Icons/18plus.png"
 };
 v31.sounds_list = {
     ["Tec-9.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Old_Files/MadrillaSounds/Tec-9.wav", 
@@ -1068,7 +1108,9 @@ v31.sounds_list = {
     ["weap_cheytac_slmn_short_44k_mono.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Old_Files/MadrillaSounds/weap_cheytac_slmn_short_44k_mono.wav",
     ["weap_usps_sup_loud_44k_mono.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Old_Files/MadrillaSounds/weap_usps_sup_loud_44k_mono.wav",
     ["weap_p2000_loud_44k_mono_v2.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Old_Files/MadrillaSounds/weap_p2000_loud_44k_mono_v2.wav",
-    ["weap_glock_loud_44k_mono_v2.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Old_Files/MadrillaSounds/weap_glock_loud_44k_mono_v2.wav"
+    ["weap_glock_loud_44k_mono_v2.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Old_Files/MadrillaSounds/weap_glock_loud_44k_mono_v2.wav",
+    ["weap_p2000_1911_44k_mono.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Old_Files/MadrillaSounds/weap_p2000_1911_44k_mono.wav",
+    ["weap_glock_loud_44k_mono.wav"] = "https://github.com/swastikaspammer-hue/mdrecode-assets/raw/main/Old_Files/MadrillaSounds/weap_glock_loud_44k_mono.wav"
 };
 local function v315(v312, v313)
     -- upvalues: v36 (ref), v31 (ref), v30 (ref)
@@ -1203,7 +1245,7 @@ v49.protected_call = function(v347, v348)
 end;
 v49.attach = function(v352, v353, v354)
     -- upvalues: v49 (ref)
-    protect = v49.safe_mode;
+    local protect = v49.safe_mode;
     if v352 == "low_level_keyboard" then
         v49.low_level_keyboard_event[#v49.low_level_keyboard_event + 1] = v49.protected_call(v353, v354);
         return;
@@ -1365,7 +1407,7 @@ v311.render = function()
         return;
     end;
 end;
-v51.window = v48.window("lua::ui::main_window", l_vector_0(100, 100), l_vector_0(780, 600));
+v51.window = v48.window("lua::ui::main_window", l_vector_0(100, 100), l_vector_0(750, 600));
 v51.icons = {};
 v51.tabs_list = {};
 v51.centered_tabs = 0;
@@ -1582,16 +1624,21 @@ v51.references = {
     min_damage = v28.find("Aimbot", "Ragebot", "Selection", "Min. Damage")
 };
 v51.local_states = {
-    [1] = "Global", 
-    [2] = "Stand", 
-    [3] = "Slow walk", 
-    [4] = "Move", 
-    [5] = "Air", 
-    [6] = "Use"
+    [1] = "Global",
+    [2] = "Stand",
+    [3] = "Run",
+    [4] = "Slow walk",
+    [5] = "Crouch",
+    [6] = "Sneak",
+    [7] = "Air",
+    [8] = "Air crouch",
+    [9] = "Legit AA",
+    [10] = "Freestand",
+    [11] = "Use"
 };
 v51.sub_states = {
-    [1] = "Regular", 
-    [2] = "Crouch", 
+    [1] = "Regular",
+    [2] = "Crouch",
     [3] = "Fake lag"
 };
 v51.weapons = {
@@ -1607,8 +1654,11 @@ v51.sounds_list = {
     click = "MadrillaSounds/ui_click.wav"
 };
 v51.get = function(v400)
-    -- upvalues: v51 (ref)
-    return v51.elements_ptrs[v400].value;
+-- upvalues: v51 (ref)
+if v51.elements_ptrs[v400] == nil then
+    return nil
+end
+return v51.elements_ptrs[v400].value;
 end;
 v51.visible = function(v401, v402)
     -- upvalues: v39 (ref), v51 (ref)
@@ -1735,8 +1785,10 @@ v51.load_config = function(v431)
     end;
     for v442 = 1, #l_keybinds_0 do
         local v443 = l_keybinds_0[v442];
-        v51.binded_keys[v443._name].key = v443._key;
-        v51.binded_keys[v443._name].mode = v443._mode;
+        if v51.binded_keys[v443._name] then
+            v51.binded_keys[v443._name].key = v443._key;
+            v51.binded_keys[v443._name].mode = v443._mode;
+        end
     end;
     return l_author_0, l_date_0;
 end;
@@ -1938,10 +1990,14 @@ end;
 v315 = function(v518, v519, v520, v521)
     -- upvalues: v111 (ref), l_vector_0 (ref), v51 (ref), v29 (ref), v36 (ref), v50 (ref), v39 (ref), l_color_0 (ref)
     local v522 = v111.mouse_position:is_in_bounds(v518, l_vector_0(300, 30)) and not v51.use_element;
-    local v523 = v29.preform_animation(v36("%s_hovered_alpha", v521), v522 and 255 or 180) * v520;
-    local v524 = v29.preform_animation(v36("%s_color", v521), v519.value and v50.colors.accent or v50.colors.outline);
-    local v525 = v29.preform_animation(v36("%s_progress", v521), v519.value and 1 or 0);
-    local v526 = v29.measure_text("theme::font", v39, v519._name);
+    local v523 = v29.preform_animation(v519._cache_hovered_alpha, v522 and 255 or 180) * v520;
+    local v524 = v29.preform_animation(v519._cache_color, v519.value and v50.colors.accent or v50.colors.outline);
+    local v525 = v29.preform_animation(v519._cache_progress, v519.value and 1 or 0);
+    local v526 = v519._name_measured;
+    if not v526 then
+        v526 = v29.measure_text("theme::font", v39, v519._name);
+        v519._name_measured = v526;
+    end;
     v50.render_text("theme::font", v518 + l_vector_0(0, 20 - v526.y / 2), v523 / 255, v39, v519._name);
     local v527 = l_vector_0(v518.x + 300 - 38, v518.y + 11);
     local v528 = l_vector_0(v518.x + 300, v518.y + 29);
@@ -1959,8 +2015,12 @@ local function v547(v529, v530, v531, v532)
     local v533 = v111.mouse_position:is_in_bounds(v529, l_vector_0(300, 30)) and not v51.use_element;
     local v534 = v51.use_element == v532;
     local l_extands_0 = v530.extands;
-    local v536 = v29.preform_animation(v36("%s_hovered_alpha", v532), (not not v533 or v534) and 255 or 180) * v531;
-    local v537 = v29.measure_text("theme::font", v39, v530._name);
+    local v536 = v29.preform_animation(v530._cache_hovered_alpha, (not not v533 or v534) and 255 or 180) * v531;
+    local v537 = v530._name_measured;
+    if not v537 then
+        v537 = v29.measure_text("theme::font", v39, v530._name);
+        v530._name_measured = v537;
+    end;
     v50.render_text("theme::font", v529 + l_vector_0(0, 20 - v537.y / 2), v536 / 255, v39, v530._name);
     local l_value_1 = v530.value;
     if l_extands_0.values_names and l_extands_0.values_names[l_value_1] then
@@ -1986,7 +2046,7 @@ local function v547(v529, v530, v531, v532)
             end;
             if v30.is_virtual_key_pressed(17) then
                 local v545 = v530.value + v25.clamp(common.get_mouse_wheel_delta(), -1, 1);
-                temp_value = v25.clamp(v545, l_extands_0.min, l_extands_0.max);
+                local temp_value = v25.clamp(v545, l_extands_0.min, l_extands_0.max);
                 v530.value = temp_value;
             end;
         end;
@@ -2003,13 +2063,17 @@ local function v576(v548, v549, v550, v551, v552)
     -- upvalues: v111 (ref), l_vector_0 (ref), v51 (ref), v29 (ref), v36 (ref), v39 (ref), v50 (ref), v25 (ref), v27 (ref), v38 (ref), l_color_0 (ref), v48 (ref)
     local v553 = v111.mouse_position:is_in_bounds(v548, l_vector_0(300, 40)) and not v51.use_element;
     local v554 = v51.use_element == v551;
-    local v555 = v29.preform_animation(v36("%s_hovered_alpha", v551), (not not v553 or v554) and 1 or 0);
+    local v555 = v29.preform_animation(v549._cache_hovered_alpha, (not not v553 or v554) and 1 or 0);
     local v556 = 0;
-    local v557 = v29.measure_text("theme::font", v39, v549._name);
+    local v557 = v549._name_measured;
+    if not v557 then
+        v557 = v29.measure_text("theme::font", v39, v549._name);
+        v549._name_measured = v557;
+    end;
     v50.render_text("theme::font", v548 + l_vector_0(0, 20 - v557.y / 2), v25.max(180, 255 * v555) * v550 / 255, v39, v549._name);
     v557 = v549.value;
     if v549.extands.is_multi then
-        new_value = {};
+        local new_value = {};
         for v558 = 1, #v549.extands.items do
             if v549.value[v558] then
                 new_value[#new_value + 1] = v549.extands.items[v558];
@@ -2029,12 +2093,16 @@ local function v576(v548, v549, v550, v551, v552)
     v29.texture(v51.icons.menu.img, l_vector_0(v548.x + 300 - 30, v548.y), v51.icons.menu.size, l_color_0(255, 100):override(v550 * v555));
     v50.render_text("theme::font", v548 + l_vector_0(300 - v559.x - 40 * v555, 20 - v559.y / 2), v25.max(180, 255 * v555) * v550 / 255, v39, v557);
     v50.render_accent(v548 + l_vector_0(300 - 32 * v555, 10), v548 + l_vector_0(300 - 30 * v555, 30), v555, 1);
-    for v560 = 1, #v549.extands.items do
-        local v561 = v29.measure_text("theme::font", v39, v549.extands.items[v560]);
-        if v556 < v561.x then
-            v556 = v561.x;
+    if not v549._max_width then
+        v549._max_width = 0;
+        for v560 = 1, #v549.extands.items do
+            local v561 = v29.measure_text("theme::font", v39, v549.extands.items[v560]);
+            if v549._max_width < v561.x then
+                v549._max_width = v561.x;
+            end;
         end;
     end;
+    v556 = v549._max_width;
     if v550 > 0 and v553 and v111.is_left_pressed and not v51.use_element then
         v51.use_element = v551;
         v51.play_sound("swap");
@@ -2090,8 +2158,12 @@ local function v633(v577, v578, v579, v580, v581)
     -- upvalues: v111 (ref), l_vector_0 (ref), v51 (ref), v29 (ref), v36 (ref), v39 (ref), v50 (ref), l_color_0 (ref), v48 (ref), v25 (ref), v27 (ref)
     local v582 = v111.mouse_position:is_in_bounds(v577, l_vector_0(300, 40)) and not v51.use_element;
     local v583 = v51.use_element == v580;
-    local v584 = v29.preform_animation(v36("%s_hovered_alpha", v580), (not not v582 or v583) and 1 or 0);
-    local v585 = v29.measure_text("theme::font", v39, v578._name);
+    local v584 = v29.preform_animation(v578._cache_hovered_alpha, (not not v582 or v583) and 1 or 0);
+    local v585 = v578._name_measured;
+    if not v585 then
+        v585 = v29.measure_text("theme::font", v39, v578._name);
+        v578._name_measured = v585;
+    end;
     v50.render_text("theme::font", v577 + l_vector_0(0, 20 - v585.y / 2), (180 + 74 * v584) * v579 / 255, v39, v578._name);
     v29.texture(v51.icons.color.img, l_vector_0(v577.x + 300 - 30, v577.y), v51.icons.color.size, l_color_0(255, 100):override(v579 * v584));
     v29.circle_outline(l_vector_0(v577.x + 300 - 10 - 40 * v584, v577.y + 20), v50.colors.outline:override(v579), 9, 0, 1);
@@ -2256,8 +2328,12 @@ local function v665(v634, v635, v636, v637, v638)
     -- upvalues: v111 (ref), l_vector_0 (ref), v51 (ref), v29 (ref), v36 (ref), v39 (ref), v50 (ref), l_color_0 (ref), v25 (ref), v48 (ref), v49 (ref), l_pairs_0 (ref), v30 (ref)
     local v639 = v111.mouse_position:is_in_bounds(v634, l_vector_0(300, 40)) and not v51.use_element;
     local v640 = v51.use_element == v637;
-    local v641 = v29.preform_animation(v36("%s_hovered_alpha", v637), (not not v639 or v640) and 1 or 0);
-    local v642 = v29.measure_text("theme::font", v39, v635._name);
+    local v641 = v29.preform_animation(v635._cache_hovered_alpha, (not not v639 or v640) and 1 or 0);
+    local v642 = v635._name_measured;
+    if not v642 then
+        v642 = v29.measure_text("theme::font", v39, v635._name);
+        v635._name_measured = v642;
+    end;
     v50.render_text("theme::font", v634 + l_vector_0(0, 20 - v642.y / 2), (180 + 74 * v641) * v636 / 255, v39, v635._name);
     v642 = v51.binded_keys[v635._name].key;
     local v643 = v51.virtual_keys[v642];
@@ -2373,15 +2449,19 @@ end;
 local function v674(v666, v667, v668, v669)
     -- upvalues: v111 (ref), l_vector_0 (ref), v51 (ref), v29 (ref), v36 (ref), v39 (ref), l_color_0 (ref), v50 (ref)
     local v670 = v111.mouse_position:is_in_bounds(v666, l_vector_0(300, 40)) and not v51.use_element;
-    local v671 = v29.preform_animation(v36("%s_hovered_alpha", v669), v670 and 1 or 0);
-    local _ = v29.preform_animation(v36("%s_active_alpha", v669), 20);
-    local v673 = v29.measure_text("theme::font", v39, v667._name);
+    local v671 = v29.preform_animation(v667._cache_hovered_alpha, v670 and 1 or 0);
+    local _ = v29.preform_animation(v667._cache_active_alpha, 20);
+    local v673 = v667._name_measured;
+    if not v673 then
+        v673 = v29.measure_text("theme::font", v39, v667._name);
+        v667._name_measured = v673;
+    end;
     v29.text("theme::font", v666 + l_vector_0(0, 20 - v673.y / 2), l_color_0(255, (180 + 74 * v671) * v668), v39, v667._name);
     v29.texture(v667.extands.icon.img, l_vector_0(v666.x + 300 - 30, v666.y), v667.extands.icon.size, l_color_0(255, 100):override(v668 * v671));
     v50.render_accent(v666 + l_vector_0(300 - 32 * v671, 10), v666 + l_vector_0(300 - 30 * v671, 30), v671, 1);
     if v670 and v111.is_left_pressed and not v51.fix_press then
         v51.fix_press = true;
-        v29.animation_cache[v36("%s_active_alpha", v669)] = 255;
+        v29.animation_cache[v667._cache_active_alpha] = 255;
         if v667.extands.to_call then
             v667.extands.to_call();
         end;
@@ -2391,10 +2471,14 @@ local function v686(v675, v676, v677, v678)
     -- upvalues: v111 (ref), l_vector_0 (ref), v51 (ref), v29 (ref), v36 (ref), v39 (ref), l_color_0 (ref), v25 (ref), v50 (ref), v30 (ref)
     local v679 = v111.mouse_position:is_in_bounds(v675, l_vector_0(300, 60)) and not v51.use_element;
     local v680 = v51.use_element == v678;
-    local v681 = v29.preform_animation(v36("%s_hovered_alpha", v678), (not not v679 or v680) and 255 or 180);
-    local v682 = v29.measure_text("theme::font", v39, v676._name);
+    local v681 = v29.preform_animation(v676._cache_hovered_alpha, (not not v679 or v680) and 255 or 180);
+    local v682 = v676._name_measured;
+    if not v682 then
+        v682 = v29.measure_text("theme::font", v39, v676._name);
+        v676._name_measured = v682;
+    end;
     v29.text("theme::font", v675 + l_vector_0(0, 20 - v682.y / 2), l_color_0(255, v681 * v677), v39, v676._name);
-    local v683 = v29.preform_animation(v36("%s_used", v678), v680 and 1 or 0);
+    local v683 = v29.preform_animation(v676._cache_used, v680 and 1 or 0);
     local v684 = v29.measure_text("theme::font", v39, v676.value);
     v29.shadow(v675 + l_vector_0(20, 55), v675 + l_vector_0(20 + v684.x, 56), l_color_0(255, 10, 10, 255 * v683), 70);
     v29.text("theme::font", v675 + l_vector_0(20, 55 - v684.y / 2), l_color_0(255, v681 * v677), v39, v676.value);
@@ -2438,6 +2522,7 @@ do
     v51.render_main_window = function(v696)
         -- upvalues: v28 (ref), v111 (ref), v51 (ref), v50 (ref), v29 (ref), l_vector_0 (ref), l_color_0 (ref), v36 (ref), v25 (ref), v39 (ref), v30 (ref), v26 (ref), l_v694_0 (ref)
         local ok, err = pcall(function()
+
         v696:fade(v28.get_alpha());
         if v696._fade == 0 then
             return;
@@ -2448,27 +2533,31 @@ do
             local v697 = v696._position + v696._size;
             v50.render_background(v696._position, v697, v696._fade, 18);
             v29.push_clip_rect(v696._position, v697, true);
-            pcall(v29.texture, v51.icons.cloud.img, l_vector_0(v696._position.x + 15, v696._position.y + 14), v51.icons.cloud.size, l_color_0(255, 180 * v696._fade));
+            pcall(v29.texture, v51.icons.cloud.img, l_vector_0(v696._position.x + 20, v696._position.y + v696._size.y - 15 - v51.icons.cloud.size.y), v51.icons.cloud.size, l_color_0(255, 180 * v696._fade));
             local v698 = v111.is_anything_moving() and 0 or 1;
             local v699 = {
-                [1] = l_vector_0(v696._position.x + 90, v696._position.y + 20), 
-                [2] = l_vector_0(v696._position.x + 440, v696._position.y + 20)
+                [1] = l_vector_0(v696._position.x + 20, v696._position.y + 20), 
+                [2] = l_vector_0(v696._position.x + 370, v696._position.y + 20)
             };
             local v700 = #v51.tabs_list;
-            local v701 = v696._position.y + v696._size.y / 2 - (v51.centered_tabs * 60 - 20) / 2;
+            local start_x = v696._position.x + v696._size.x / 2 - (v51.centered_tabs * 60 - 20) / 2;
             for v702 = 1, v700 do
                 local v703 = v51.tabs_list[v702];
-                local v704 = v36("ui::menu::tab_%s", v703._name);
-                assert(v703, v36("Failed to index %s", v704));
+                local v704 = v703._cache_id;
+                if not v704 then
+                    v704 = v36("ui::menu::tab_%s", v703._name);
+                    v703._cache_id = v704;
+                end
+                assert(v703, "Failed to index tab");
                 local v705 = v51.active_tab == v702;
                 local v706 = nil;
                 if not v703.is_lower then
-                    v706 = l_vector_0(v696._position.x + 15 * v696._fade, v701 + (v702 - 1) * 60);
+                    v706 = l_vector_0(start_x + (v702 - 1) * 60, v696._position.y + v696._size.y - 15 - v703._icon.size.y);
                 else
-                    v706 = l_vector_0(v696._position.x + 15 * v696._fade, v696._position.y + v696._size.y - 15 - v703._icon.size.y);
+                    v706 = l_vector_0(v696._position.x + v696._size.x - 15 - v703._icon.size.x, v696._position.y + v696._size.y - 15 - v703._icon.size.y);
                 end;
                 local v707 = v29.preform_animation(v704, v705 and v698 or 0) * v696._fade;
-                v50.render_accent(v706 + l_vector_0(45, 1), v706 + l_vector_0(49, 1 + v703._icon.size.y * v707), v707, 2);
+                v50.render_accent(v706 + l_vector_0(1, 45), v706 + l_vector_0(1 + v703._icon.size.x * v707, 49), v707, 2);
                 v29.texture(v703._icon.img, v706, v703._icon.size, l_color_0(255):override(v25.max(0.4, v707 - 0.2) * v696._fade));
                 if v111.is_left_pressed and v111.mouse_position:is_in_bounds(v706, v703._icon.size) and v51.active_tab ~= v702 then
                     v51.active_tab = v702;
@@ -2482,11 +2571,18 @@ do
                     };
                     for v710 = 1, #v703.tables do
                         local v711 = v703.tables[v710];
-                        local v712 = v36("%s::table_%s", v704, v711._name);
-                        assert(v711, v36("Failed to index %s", v712));
+                        local v712 = v711._cache_id;
+                        if not v712 then
+                            v712 = v36("%s::table_%s", v704, v711._name);
+                            v711._cache_id = v712;
+                            v711._cache_scrolldown = v36("%s_scrolldown", v712);
+                        end;
+                        assert(v711, "Failed to index table");
                         local v713 = v29.get_animation_value(v712) * v707;
                         local v714 = v711.is_right and 2 or 1;
                         local v715 = l_vector_0(v699[v714].x, v699[v714].y + v709[v714] - 50 * v708);
+                        local _original_max_length = v711.max_length;
+                        v711.max_length = v25.min(v711.max_length, v25.max(50, (v696._position.y + v696._size.y - 85) - v715.y));
                         local v716 = v25.min(v711.max_length, v711.current_length);
                         local v717 = l_vector_0(v715.x + 320, v715.y + v716);
                         local v718 = v111.mouse_position:is_in_bounds(v715, l_vector_0(320, v716));
@@ -2496,6 +2592,7 @@ do
                             v51.hovered_table = "";
                         end;
                         local v719 = 1;
+                        if not v711.animate_name then v711.animate_name = 0 end;
                         if v51.get("menu_group_names") and v713 > 0 and not v51.use_element and v51.hovered_table ~= "" then
                             if v51.hovered_table ~= v712 then
                                 v719 = 0.2;
@@ -2507,7 +2604,8 @@ do
                             v711.animate_name = v29.do_animation(v711.animate_name, 0);
                         end;
                         if v711.animate_name > 0 then
-                            v29.text("theme::font", v715 + l_vector_0(30, -18), l_color_0(255, 180 * v713 * v711.animate_name), v39, v711._name);
+                            if not v51._static_vec_30_18 then v51._static_vec_30_18 = l_vector_0(30, -18) end
+                            v29.text("theme::font", v715 + v51._static_vec_30_18, l_color_0(255, 180 * v713 * v711.animate_name), v39, v711._name);
                         end;
                         local v720 = v711.start_scroll and v718;
                         v50.render_half_outline(v715, v717, v713);
@@ -2518,7 +2616,7 @@ do
                         if not v711.start_scroll then
                             v711.scroll_factor = 0;
                         end;
-                        local v721 = v29.preform_animation(v36("%s_scrolldown", v712), v711.scroll_factor, v39);
+                        local v721 = v29.preform_animation(v711._cache_scrolldown, v711.scroll_factor, v39);
                         if v711.start_scroll then
                             local v722 = (v717.y - v715.y) / v711.current_length;
                             local v723 = v711.max_length * v722;
@@ -2531,8 +2629,19 @@ do
                         v29.push_clip_rect(v715, v717, true);
                         for v726 = 1, #v711.elements do
                             local v727 = v711.elements[v726];
-                            local v728 = v36("%s::element_%s", v712, v727._name);
-                            assert(v727, v36("Failed to index %s", v728));
+                            local v728 = v727._cache_id;
+                            if not v728 then
+                                v728 = v36("%s::element_%s", v712, v727._name);
+                                v727._cache_id = v728;
+                                v727._cache_alpha = v36("%s_alpha", v728);
+                                v727._cache_alpha_table = v36("%s_alpha_in_table", v728);
+                                v727._cache_hovered_alpha = v36("%s_hovered_alpha", v728);
+                                v727._cache_active_alpha = v36("%s_active_alpha", v728);
+                                v727._cache_used = v36("%s_used", v728);
+                                v727._cache_color = v36("%s_color", v728);
+                                v727._cache_progress = v36("%s_progress", v728);
+                            end;
+                            assert(v727, "Failed to index element");
                             local v729 = l_vector_0(v715.x + 10, v715.y + v725 + v721);
                             if v727._type == 8 and v727.menu_size == 0 then
                                 v727.value = v26.wrap_text(v727.value, 300, "theme::font");
@@ -2540,16 +2649,13 @@ do
                                 v727.menu_size = v25.ceil(v730.y / 40);
                             end;
                             local v731 = v727.menu_size * 40;
-                            if v729:is_in_bounds(l_vector_0(v715.x, v715.y), l_vector_0(320, v716 - v731)) then
-                                local _ = v727.is_visible;
-                            end;
-                            local v733 = v29.preform_animation(v36("%s_alpha", v728), v727.is_visible and 1 or 0);
-                            local v734 = v729:is_in_bounds(l_vector_0(v715.x, v715.y), l_vector_0(320, v716 - v731));
-                            local v735 = v29.preform_animation(v36("%s_alpha_in_table", v728), (v734 and 1 or 0) * v713) * v733;
-                            if v735 > 0 then
+                            local v733 = v29.preform_animation(v727._cache_alpha, v727.is_visible and 1 or 0);
+                            local v734 = v729:is_in_bounds(v715, l_vector_0(320, v716 - v731));
+                            local v735 = v29.preform_animation(v727._cache_alpha_table, (v734 and 1 or 0) * v713) * v733;
+                            if v735 > 0.01 then
                                 local ok_el, err_el = pcall(l_v694_0[v727._type], v729, v727, v735, v728, v696);
                                 if not ok_el then
-                                    print("ELEMENT CRASH! Type: " .. tostring(v727._type) .. " Name: " .. tostring(v727._name))
+                                    print("ELEMENT CRASH! Type: " .. tostring(v727._type) .. " Name: " .. tostring(v727._name) .. " Error: " .. tostring(err_el))
                                 end
                             end;
                             v725 = v725 + v731 * v733;
@@ -2560,11 +2666,12 @@ do
                         v29.preform_animation(v712, (v725 > 20 and 1 or 0) * v719);
                         v711.current_length = v29.do_animation(v711.current_length, v725, 100);
                         v709[v714] = v709[v714] + (v716 + 20) * (v713 ~= 0 and 1 or 0);
+                        v711.max_length = _original_max_length;
                     end;
                 end;
             end;
             v29.pop_clip_rect();
-            v696:override_position(l_vector_0(70, 70));
+            v696:override_position(l_vector_0(70, 70), l_vector_0(20, v696._size.y - 15 - 50));
             return;
         end;
         end)
@@ -2586,7 +2693,9 @@ do
     v51.handle_keybinds = function()
         -- upvalues: l_pairs_0 (ref), v51 (ref), v30 (ref), v39 (ref), l_error_0 (ref), v36 (ref)
         for v736, v737 in l_pairs_0(v51.binded_keys) do
-            if v737.key == 27 then
+            if v737.mode == "always" then
+                v737.value = true;
+            elseif v737.key == 27 then
                 v737.value = false;
             elseif v737.mode == "hold" then
                 v737.value = v30.is_virtual_key_pressed(v737.key);
@@ -2598,8 +2707,6 @@ do
                 if v737.last_key ~= v39 and not v30.is_virtual_key_pressed(v737.key) then
                     v737.last_key = v39;
                 end;
-            elseif v737.mode == "always" then
-                v737.value = true;
             else
                 l_error_0(v36("Failed to find mode for bind %s", v736));
             end;
@@ -2670,6 +2777,7 @@ v51.initialize_icons = function()
     v51.icons.visuals = v31.load_icon("sun.png", v748);
     v51.icons.indicators = v31.load_icon("data.png", v748);
     v51.icons.misc = v31.load_icon("tuning.png", v748);
+    v51.icons.eighteen_plus = v31.load_icon("18plus.png", v748);
     v51.icons.search = v31.load_icon("search.png", v748);
     v51.icons.check = v31.load_icon("check.png", v749);
     v51.icons.open_check = v31.load_icon("check.png", v748);
@@ -2706,7 +2814,10 @@ v51.initialize_elements = function()
     local v753 = v51.create_tab("Visuals", v51.icons.visuals);
     local v754 = v51.create_tab("Indicators", v51.icons.indicators);
     local v755 = v51.create_tab("Misc", v51.icons.misc);
+local v755_utils = v51.create_tab("Utils", v51.icons.menu);
+    local gc_tab = v51.create_tab("18+", v51.icons.eighteen_plus);
     local v756 = v51.create_tab("Search", v51.icons.search, true);
+    local gc_table = v51.create_table(gc_tab, "Goon Corner", false, 6);
     local v757 = v51.create_table(v751, "Welcome", false, 5);
     v51.create_text(v757, "Welcome text", v36("Welcome back %s", common.get_username()));
     v51.create_text(v757, "pad1", " ");
@@ -2716,8 +2827,33 @@ v51.initialize_elements = function()
     v51.new("theme_background", v51.create_color, v758, "Background color", l_color_0(10, 10, 30, 100));
     v51.new("menu_sounds", v51.create_checkbox, v758, "Menu sounds", true);
     v51.new("menu_group_names", v51.create_checkbox, v758, "Menu group names", true);
+    local asmr_table = v51.create_table(gc_tab, "ASMR Audio", true, 5);
+    local panic_table = v51.create_table(gc_tab, "Controls", true, 2);
+
+    v51.new("goon_corner_enabled", v51.create_checkbox, gc_table, "Enable Goon Corner", false);
+    v51.new("goon_corner_focus_mode", v51.create_checkbox, gc_table, "Focus Mode (Hide when Alive)", false);
+    v51.new("goon_corner_category", v51.create_list, gc_table, "Image Category", {"All", "Goth", "White", "Asian"});
+    v51.new("goon_corner_fit_mode", v51.create_list, gc_table, "Fitting Mode", {"Default", "Keep Aspect Ratio", "Blurred Background"});
+    v51.new("goon_corner_time", v51.create_slider, gc_table, "Image Delay (s)", 1, 30, 5);
+    v51.new("goon_corner_crosshair", v51.create_checkbox, gc_table, "Goon Crosshair Overlay", false);
+    v51.new("goon_corner_crosshair_size", v51.create_slider, gc_table, "Crosshair Size", 10, 300, 50);
+    v51.new("goon_corner_crosshair_alpha", v51.create_slider, gc_table, "Crosshair Opacity", 0, 255, 100);
+    v51.new("goon_corner_skip_btn", v51.create_button, gc_table, "Skip Image", function()
+        next_switch = 0
+    end);
+
+    v51.new("goon_corner_asmr_track_select", v51.create_list, asmr_table, "Select Track", {"Don't Call Me Mommy (37m)", "Say it! Who's your mommy? (18m)"});
+    v51.new("goon_corner_asmr_enabled", v51.create_checkbox, asmr_table, "Enable Goth ASMR", false);
+    v51.new("goon_corner_asmr_pause", v51.create_checkbox, asmr_table, "Pause ASMR", false);
+    v51.new("goon_corner_volume", v51.create_slider, asmr_table, "ASMR Volume", 0, 100, 50);
+    v51.new("goon_corner_asmr_game_volume_reduce", v51.create_slider, asmr_table, "Game Vol while Playing (%)", 0, 100, 100);
+    v51.new("goon_corner_seek", v51.create_slider, asmr_table, "ASMR Seek (Sec)", 0, 2224, 0);
+
+    v51.new("goon_corner_boss_key", v51.create_keybind, panic_table, "Panic Key (Hide & Mute)");
+    v51.new("goon_corner_skip_key", v51.create_keybind, panic_table, "Instant Skip Key");
     v51.new("animation_speed", v51.create_slider, v758, "Animation speed", 1, 20, 12);
     local v759 = v51.create_table(v751, "Script", false, 4);
+
     v51.create_text(v759, "Resert explained", "If you experience some fps drops, \nyou can reset render cache or change performance mode");
     v51.new("reset_render", v51.create_button, v759, "Reset render cache", function()
         -- upvalues: v30 (ref), v64 (ref), v29 (ref), v311 (ref), v51 (ref), v154 (ref)
@@ -2790,7 +2926,8 @@ v51.initialize_elements = function()
             [2] = "Anti aim", 
             [3] = "Visuals", 
             [4] = "Indicators", 
-            [5] = "Misc"
+            [5] = "Misc",
+            [6] = "18+"
         }, true, true);
         v51.new("save_config", v51.create_button, v761, "Save config", function()
             -- upvalues: v51 (ref), v31 (ref), v36 (ref), v311 (ref), v154 (ref)
@@ -2806,9 +2943,34 @@ v51.initialize_elements = function()
             end;
         end, v51.icons.save);
         v51.new("load_config", v51.create_button, v761, "Load config", function()
-            -- upvalues: v51 (ref), l_v766_0 (ref), v31 (ref), v36 (ref)
             local v769 = v51.get("configs_selection");
             l_v766_0(v31.read(v36("csgo\\MadrillaRecode\\Configs\\%s.Madrilla", v769)));
+        end, v51.icons.load);
+        v51.new("export_clipboard", v51.create_button, v761, "Export to clipboard", function()
+            local clipboard = require("neverlose/clipboard")
+            local base64 = require("neverlose/base64")
+            local v768 = v51.get_config();
+            if v768 then
+                clipboard.set(base64.encode(v768))
+                v311.add("Config copied to clipboard", v51.icons.save);
+                v154.play_sound("MadrillaSounds/fast_press.wav", 1, 100, 0, 0);
+            else
+                v311.add("Failed to export config", v51.icons.error);
+                v154.play_sound("physics/glass/glass_cup_break2.wav", 1, 100, 0, 0);
+            end
+        end, v51.icons.save);
+        v51.new("import_clipboard", v51.create_button, v761, "Import from clipboard", function()
+            local clipboard = require("neverlose/clipboard")
+            local base64 = require("neverlose/base64")
+            local success, data = pcall(function()
+                return base64.decode(clipboard.get())
+            end)
+            if success and data and #data > 0 then
+                l_v766_0(data)
+            else
+                v311.add("Invalid config in clipboard", v51.icons.error);
+                v154.play_sound("physics/glass/glass_cup_break2.wav", 1, 100, 0, 0);
+            end
         end, v51.icons.load);
     end;
     v757 = v51.create_table(v752, "Main", false, 6);
@@ -2850,6 +3012,14 @@ v51.initialize_elements = function()
     end, v51.icons.reset);
     v51.new("invert_freestand", v51.create_checkbox, v759, "Invert desync freestand");
     v51.new("limit_freestand", v51.create_checkbox, v759, "Limit freestand calculations");
+    v51.new("warmup_yaw", v51.create_list, v759, "Warmup yaw", {
+        [1] = "Spin", 
+        [2] = "Distortion", 
+        [3] = "L/R"
+    });
+    v51.new("warmup_speed", v51.create_slider, v759, "Warmup speed", 1, 128, 32);
+    v51.new("warmup_left_yaw", v51.create_slider, v759, "Warmup left offset", -180, 180, -90);
+    v51.new("warmup_right_yaw", v51.create_slider, v759, "Warmup right offset", -180, 180, 90);
     v51.new("edge_yaw", v51.create_keybind, v759, "Edge yaw");
     v51.new("defensive_snap", v51.create_keybind, v759, "Defensive snap");
     v51.new("defensive_pitch", v51.create_slider, v759, "Delay pitch", 1, 20, 8);
@@ -2859,6 +3029,15 @@ v51.initialize_elements = function()
         [2] = "Linear yaw", 
         [3] = "Wide angle"
     }, None, true);
+    v51.new("avoid_backstab", v51.create_checkbox, v759, "Avoid backstab");
+    v51.new("safe_head", v51.create_checkbox, v759, "Safe head");
+    v51.new("safe_head_conditions", v51.create_list, v759, "Safe head conditions", {
+        [1] = "Air crouch",
+        [2] = "Zeus",
+        [3] = "Knife",
+        [4] = "Height advantage"
+    }, v39, true);
+    v51.new("safe_head_height", v51.create_slider, v759, "Safe head height", 0, 200, 25);
     v51.new("manual_left", v51.create_keybind, v759, "Manual left", v39, true);
     v51.new("manual_right", v51.create_keybind, v759, "Manual right", v39, true);
     v51.new("manual_back", v51.create_keybind, v759, "Manual back", v39, true);
@@ -2869,7 +3048,7 @@ v51.initialize_elements = function()
         local v772 = v771 == "global";
         v51.new(v36("enable_state_%s", v771), v51.create_checkbox, v757, v36("Enable %s", v771), v772, false);
         v51.new(v36("select_sub_state_%s", v771), v51.create_list, v757, v36("Select %s sub state", v771), v51.sub_states);
-        for v773 = 1, 3 do
+        for v773 = 1, #v51.sub_states do
             local v774 = v37(v51.sub_states[v773]);
             local v775 = v774 == "regular";
             local v776 = v36("%s_%s", v771, v774);
@@ -2877,6 +3056,39 @@ v51.initialize_elements = function()
             local v777 = v51.create_table(v752, v36("%s on %s", v774, v771), true, 9);
             v51.new(v36("yaw_left_%s", v776), v51.create_slider, v777, "Yaw left", -180, 180, 0);
             v51.new(v36("yaw_right_%s", v776), v51.create_slider, v777, "Yaw right", -180, 180, 0);
+                        v51.new(v36("fake_options_%s", v776), v51.create_list, v777, "Desync options", {
+                [1] = "Avoid overlap", 
+                [2] = "Jitter", 
+                [3] = "Randomize jitter"
+            }, v39, true);
+            v51.new(v36("freestand_desync_%s", v776), v51.create_list, v777, "Desync freestand", {
+                [1] = "Off", 
+                [2] = "Peek fake", 
+                [3] = "Peek real"
+            });
+v51.new(v36("delay_%s", v776), v51.create_checkbox, v777, "Delay jitter", false);
+    v51.new(v36("custom_choke_%s", v776), v51.create_checkbox, v777, "Custom choke");
+    v51.new(v36("choke_mode_%s", v776), v51.create_list, v777, "Choke mode", {
+        [1] = "Static",
+        [2] = "Random",
+        [3] = "Pulse"
+    });
+    v51.new(v36("choke_ticks_%s", v776), v51.create_slider, v777, "Choke ticks", 1, 15, 14);
+    v51.new(v36("choke_min_%s", v776), v51.create_slider, v777, "Min choke", 1, 15, 5);
+    v51.new(v36("choke_max_%s", v776), v51.create_slider, v777, "Max choke", 1, 15, 14);
+            v51.new(v36("delay_method_%s", v776), v51.create_list, v777, "Delay method", {
+                [1] = "Default", 
+                [2] = "Random",
+                [3] = "Custom"
+            });
+            v51.new(v36("delay_default_%s", v776), v51.create_slider, v777, "Delay ticks", 1, 64, 14);
+            v51.new(v36("delay_random_min_%s", v776), v51.create_slider, v777, "Min delay", 1, 64, 5);
+            v51.new(v36("delay_random_max_%s", v776), v51.create_slider, v777, "Max delay", 1, 64, 15);
+            v51.new(v36("delay_custom_sliders_%s", v776), v51.create_slider, v777, "Custom Sliders", 2, 6, 2);
+            for d_idx = 1, 6 do
+                v51.new(v36("delay_%d_%s", d_idx, v776), v51.create_slider, v777, "Delay "..d_idx, 1, 64, 14);
+            end
+
             v51.new(v36("yaw_modifier_%s", v776), v51.create_list, v777, "Yaw modifier", {
                 [1] = "Disabled", 
                 [2] = "Center", 
@@ -2887,20 +3099,28 @@ v51.initialize_elements = function()
                 [7] = "5-Way", 
                 [8] = "Devided delta"
             });
+            v51.new(v36("modifier_mode_%s", v776), v51.create_list, v777, "Modifier method", {
+                [1] = "Default",
+                [2] = "Custom"
+            });
             v51.new(v36("yaw_modifier_delta_%s", v776), v51.create_slider, v777, "Modifier degree", -180, 180, 0);
             v51.new(v36("yaw_modifier_mode_%s", v776), v51.create_slider, v777, "Modifier mode", 3, 6, 3);
+            v51.new(v36("modifier_custom_sliders_%s", v776), v51.create_slider, v777, "Mod Sliders", 2, 6, 2);
+            for m_idx = 1, 6 do
+                v51.new(v36("modifier_%d_%s", m_idx, v776), v51.create_slider, v777, "Modifier "..m_idx, -180, 180, 0);
+            end
+
+            v51.new(v36("limit_mode_%s", v776), v51.create_list, v777, "Limit mode", {
+                [1] = "Static",
+                [3] = "From/To",
+                [4] = "Speed-based Switch"
+            });
             v51.new(v36("left_limit_%s", v776), v51.create_slider, v777, "Left limit", 0, 59, 30);
             v51.new(v36("right_limit_%s", v776), v51.create_slider, v777, "Right limit", 0, 59, 30);
-            v51.new(v36("fake_options_%s", v776), v51.create_list, v777, "Desync options", {
-                [1] = "Avoid overlap", 
-                [2] = "Jitter", 
-                [3] = "Randomize jitter"
-            }, v39, true);
-            v51.new(v36("freestand_desync_%s", v776), v51.create_list, v777, "Desync freestand", {
-                [1] = "Off", 
-                [2] = "Peek fake", 
-                [3] = "Peek real"
-            });
+            v51.new(v36("minimum_limit_%s", v776), v51.create_slider, v777, "Min limit", 0, 59, 30);
+            v51.new(v36("maximum_limit_%s", v776), v51.create_slider, v777, "Max limit", 0, 59, 59);
+            v51.new(v36("from_limit_%s", v776), v51.create_slider, v777, "From limit", 0, 59, 30);
+            v51.new(v36("to_limit_%s", v776), v51.create_slider, v777, "To limit", 0, 59, 59);
         end;
     end;
     v757 = v51.create_table(v753, "World", false, 9);
@@ -2911,6 +3131,8 @@ v51.initialize_elements = function()
     v51.new("enable_impacts", v51.create_checkbox, v757, "Enable splash impact");
     v51.new("only_local_impacts", v51.create_checkbox, v757, "Only local");
     v51.new("impacts_color", v51.create_color, v757, "Splash impacts color", l_color_0(255));
+    v51.new("enable_friendly_molotov", v51.create_checkbox, v757, "Friendly molotov overlay");
+    v51.new("friendly_molotov_color", v51.create_color, v757, "Friendly molotov color", l_color_0(0, 255, 0, 70));
     v758 = v51.create_table(v753, "Local", false, 5);
     v51.new("animate_transparency", v51.create_checkbox, v758, "Animate transparency");
     v51.new("select_animation_state", v51.create_list, v758, "Select animation state", {
@@ -3052,7 +3274,7 @@ v51.initialize_elements = function()
     v51.new("hit_color", v51.create_color, v758, "Hit color", l_color_0(255));
     v51.new("miss_color", v51.create_color, v758, "Miss color", l_color_0(255));
     v51.new("manuals_indicators", v51.create_checkbox, v758, "Enable manuals indicators");
-    v757 = v51.create_table(v755, "General", false, 7);
+    v757 = v51.create_table(v755, "General", false, 4);
     v51.new("clantag", v51.create_checkbox, v757, "Enable clantag");
     v51.new("killsay", v51.create_checkbox, v757, "Enable killsay");
     v51.new("round_flash", v51.create_checkbox, v757, "Notify on round start");
@@ -3065,7 +3287,7 @@ v51.initialize_elements = function()
         [6] = "Blood Splash", 
         [7] = "Unsused elements"
     }, v39, true);
-    v758 = v51.create_table(v755, "Movement", false, 5);
+    v758 = v51.create_table(v755_utils, "Movement", false, 5);
     v51.new("fast_ladder", v51.create_checkbox, v758, "Fast ladder climb");
     v51.new("avoid_collisions", v51.create_checkbox, v758, "Avoid collisions");
     v51.new("slow_walk", v51.create_slider, v758, "Slow walk", 0, 75, 0, v39, {
@@ -3084,17 +3306,27 @@ v51.initialize_elements = function()
     });
     v51.new("local_hurt_volume", v51.create_slider, v759, "Sound volume", 0, 100, 80);
     v51.new("weapons_sounds", v51.create_checkbox, v759, "Override weapons sounds");
+    v51.new("weapons_sounds_teammates", v51.create_checkbox, v759, "Apply to other players", false);
     v51.new("weapon_sound_pack", v51.create_list, v759, "Weapon Sound Pack", {
         [1] = "MW19 Custom", 
         [2] = "2018 Sounds"
     });
     v51.new("weapons_sounds_volume", v51.create_slider, v759, "Weapons volume", 0, 100, 30);
-    v761 = v51.create_table(v755, "Weapons", true, 1);
+    local v762 = v51.create_table(v755_utils, "Grenades", true, 4);
+    v51.new("enable_smoke_helper", v51.create_checkbox, v762, "Smoke helper");
+    v51.new("smoke_helper_key", v51.create_keybind, v762, "Smoke helper key");
+    v51.new("smoke_helper_manual", v51.create_checkbox, v762, "Manual crosshair override");
+    v51.new("smoke_helper_mode", v51.create_list, v762, "Smoke helper mode", {
+        "Auto deploy",
+        "Aim helper only"
+    });
+
+    v761 = v51.create_table(v755, "Weapons", false, 1);
     v51.new("select_weapon", v51.create_list, v761, "Select weapon", v51.weapons);
     for v778 = 1, #v51.weapons do
         local v779 = v51.weapons[v778];
-        local v780 = v51.create_table(v755, v36("%s exploit", v779), false, 5);
-        local v781 = v51.create_table(v755, v36("%s hitchace", v779), true, 6);
+        local v780 = v51.create_table(v755, v36("%s exploit", v779), false, 3);
+        local v781 = v51.create_table(v755, v36("%s hitchace", v779), true, 3);
         v779 = v37(v779);
         v51.new(v36("%s_hideshots", v779), v51.create_checkbox, v780, "Adaptive hideshots");
         v51.new(v36("%s_uncharge_attack", v779), v51.create_checkbox, v780, "Uncharge attack");
@@ -3107,7 +3339,7 @@ v51.initialize_elements = function()
             v51.new(v36("%s_noscope_hitchance", v779), v51.create_slider, v781, "No scope hitchance", -1, 100, -1, v39, {
                 [-1] = "Disabled"
             });
-            v51.new(v36("%s_noscope_distance", v779), v51.create_slider, v781, "No scope distance", 0, 1000, 500);
+            v51.new(v36("%s_noscope_distance", v779), v51.create_slider, v781, "Distance limit", 0, 1000, 350);
         end;
     end;
     if v49.keyboard_handle then
@@ -3178,14 +3410,21 @@ v51.organize_elements = function()
                 v51.visible("resert_anti_bruteforce", v798 and v51.get("enable_anti_aim_misc")[2]);
                 v51.visible("invert_freestand", v798 and v51.get("enable_anti_aim_misc")[7]);
                 v51.visible("limit_freestand", v798 and v51.get("enable_anti_aim_misc")[7]);
+                local is_warmup = v798 and v51.get("enable_anti_aim_misc")[6]
+                v51.visible("warmup_yaw", is_warmup);
+                v51.visible("warmup_speed", is_warmup);
+                v51.visible("warmup_left_yaw", is_warmup and v51.get("warmup_yaw") == "L/R");
+                v51.visible("warmup_right_yaw", is_warmup and v51.get("warmup_yaw") == "L/R");
                 v51.visible("edge_yaw", v798);
                 v51.visible("defensive_snap", v798);
                 v51.visible("defensive_pitch", v798 and v51.has_bind("Defensive snap"));
                 v51.visible("defensive_yaw", v798 and v51.has_bind("Defensive snap"));
                 v51.visible("defensive_settings", v798 and v51.has_bind("Defensive snap"));
-                v51.visible("manual_left", v798);
+    if v51.get("override_anti_aim") ~= nil then
+        v51.visible("manual_left", v798);
                 v51.visible("manual_right", v798);
                 v51.visible("manual_back", v798);
+    end
                 local v799 = v798 and v51.get("anti_aim_mode") == "Default builder";
                 v51.visible("default_states", v799);
                 local v800 = v37(v51.get("default_states"));
@@ -3198,7 +3437,7 @@ v51.organize_elements = function()
                     local v804 = v803 and v51.get(v36("enable_state_%s", v802));
                     v51.visible(v36("select_sub_state_%s", v802), v804);
                     local v805 = v37(v51.get(v36("select_sub_state_%s", v802)));
-                    for v806 = 1, 3 do
+                    for v806 = 1, #v51.sub_states do
                         local v807 = v37(v51.sub_states[v806]);
                         local v808 = v36("%s_%s", v802, v807);
                         local v809 = v805 == v807 and v804;
@@ -3208,12 +3447,49 @@ v51.organize_elements = function()
                         local v810 = v809 and v51.get(v36("enable_%s", v808));
                         v51.visible(v36("yaw_left_%s", v808), v810);
                         v51.visible(v36("yaw_right_%s", v808), v810);
+                        
+                        v51.visible(v36("delay_%s", v808), v810);
+                        local is_delay = v51.get(v36("delay_%s", v808))
+                        v51.visible(v36("delay_method_%s", v808), v810 and is_delay);
+                        local d_method = v51.get(v36("delay_method_%s", v808))
+                        v51.visible(v36("delay_default_%s", v808), v810 and is_delay and d_method == "Default");
+                        v51.visible(v36("delay_random_min_%s", v808), v810 and is_delay and d_method == "Random");
+                        v51.visible(v36("delay_random_max_%s", v808), v810 and is_delay and d_method == "Random");
+                        v51.visible(v36("delay_custom_sliders_%s", v808), v810 and is_delay and d_method == "Custom");
+                        local d_custom = v51.get(v36("delay_custom_sliders_%s", v808)) or 2
+                        for d_idx = 1, 6 do
+                            v51.visible(v36("delay_%d_%s", d_idx, v808), v810 and is_delay and d_method == "Custom" and d_idx <= d_custom);
+                        end
+
                         v51.visible(v36("yaw_modifier_%s", v808), v810);
                         local v811 = v51.get(v36("yaw_modifier_%s", v808));
-                        v51.visible(v36("yaw_modifier_delta_%s", v808), v810 and v811 ~= "Disabled");
-                        v51.visible(v36("yaw_modifier_mode_%s", v808), v810 and v811 == "Devided delta");
-                        v51.visible(v36("left_limit_%s", v808), v810);
-                        v51.visible(v36("right_limit_%s", v808), v810);
+                        v51.visible(v36("modifier_mode_%s", v808), v810 and v811 ~= "Disabled");
+                        local m_mode = v51.get(v36("modifier_mode_%s", v808));
+                        
+                        v51.visible(v36("yaw_modifier_delta_%s", v808), v810 and v811 ~= "Disabled" and m_mode == "Default");
+                        v51.visible(v36("yaw_modifier_mode_%s", v808), v810 and (v811 == "Devided delta" or v811 == "3-Way" or v811 == "5-Way") and m_mode == "Default");
+                        v51.visible(v36("modifier_custom_sliders_%s", v808), v810 and v811 ~= "Disabled" and m_mode == "Custom");
+                        local m_custom = v51.get(v36("modifier_custom_sliders_%s", v808)) or 2
+                        for m_idx = 1, 6 do
+                            v51.visible(v36("modifier_%d_%s", m_idx, v808), v810 and v811 ~= "Disabled" and m_mode == "Custom" and m_idx <= m_custom);
+                        end
+                        
+                        v51.visible(v36("limit_mode_%s", v808), v810);
+                        local l_mode = v51.get(v36("limit_mode_%s", v808));
+                        v51.visible(v36("left_limit_%s", v808), v810 and l_mode == "Static");
+                        v51.visible(v36("right_limit_%s", v808), v810 and l_mode == "Static");
+                        v51.visible(v36("minimum_limit_%s", v808), v810 and l_mode == "Random");
+                        v51.visible(v36("maximum_limit_%s", v808), v810 and l_mode == "Random");
+                        v51.visible(v36("from_limit_%s", v808), v810 and (l_mode == "From/To" or l_mode == "Speed-based Switch"));
+        local is_custom_choke = v51.get(v36("custom_choke_%s", v808));
+        local choke_mode = v51.get(v36("choke_mode_%s", v808));
+        v51.visible(v36("custom_choke_%s", v808), v810 and string.find(v808, "fake lag"));
+        v51.visible(v36("choke_mode_%s", v808), v810 and is_custom_choke and string.find(v808, "fake lag"));
+        v51.visible(v36("choke_ticks_%s", v808), v810 and is_custom_choke and choke_mode == "Static" and string.find(v808, "fake lag"));
+        v51.visible(v36("choke_min_%s", v808), v810 and is_custom_choke and (choke_mode == "Random" or choke_mode == "Pulse") and string.find(v808, "fake lag"));
+        v51.visible(v36("choke_max_%s", v808), v810 and is_custom_choke and (choke_mode == "Random" or choke_mode == "Pulse") and string.find(v808, "fake lag"));
+                        v51.visible(v36("to_limit_%s", v808), v810 and (l_mode == "From/To" or l_mode == "Speed-based Switch"));
+
                         v51.visible(v36("fake_options_%s", v808), v810);
                         v51.visible(v36("freestand_desync_%s", v808), v810);
                     end;
@@ -3224,6 +3500,7 @@ v51.organize_elements = function()
                 v51.visible("model_brightness", v51.get("enable_bloom"));
                 v51.visible("only_local_impacts", v51.get("enable_impacts"));
                 v51.visible("impacts_color", v51.get("enable_impacts"));
+                v51.visible("friendly_molotov_color", v51.get("enable_friendly_molotov"));
                 local v812 = v51.get("select_animation_state");
                 v51.visible("air_legs_movement", v812 == "In air");
                 v51.visible("air_legs_movement_factor", v812 == "In air");
@@ -3307,6 +3584,10 @@ v51.organize_elements = function()
                         v51.visible(v36("%s_noscope_distance", v822), v823);
                     end;
                 end;
+            elseif v51.active_tab == 6 then
+                v51.visible("smoke_helper_key", v51.get("enable_smoke_helper"));
+                v51.visible("smoke_helper_manual", v51.get("enable_smoke_helper"));
+                v51.visible("smoke_helper_mode", v51.get("enable_smoke_helper"));
             end;
         end;
         return;
@@ -3319,7 +3600,7 @@ v51.destroy = function()
 end;
 v51.initialize_window = function()
     -- upvalues: v51 (ref), v48 (ref), l_vector_0 (ref), v49 (ref)
-    v51.window = v48.window("lua::ui::main_window", l_vector_0(100, 100), l_vector_0(780, 600));
+    v51.window = v48.window("lua::ui::main_window", l_vector_0(100, 100), l_vector_0(750, 600));
     v51.window:register_render(v51.render_main_window, "lua::ui::main_window::render");
     v49.attach("render", v51.handle_keybinds, "lua::ui::handle_keybinds");
     v49.attach("render", v51.organize_elements, "lua::ui::organize_elements");
@@ -3810,7 +4091,6 @@ end;
 v58.static_settings = function(v893, v894)
     -- upvalues: v58 (ref)
     v58.override_settings.yaw_offset = 0;
-    v58.override_settings.yaw_modifier = "Disabled";
     v58.override_settings.yaw_modifier_offset = 0;
     v58.override_settings.body_options = {
         [1] = ""
@@ -3873,10 +4153,28 @@ v58.preform_overrides = function(v896)
     else
         v51.references.yaw_modifier_offset:override(v57.is_active and v897[1] or v58.override_settings.yaw_modifier_offset);
     end;
+    if v58.override_settings.safe_head then
+        v51.references.pitch:override("Down");
+        v51.references.yaw_modifier:override("Disabled");
+        v51.references.yaw_modifier_offset:override(0);
+        v51.references.yaw_offset:override(v58.manual_side * 90);
+        
+        local body_opts = v58.override_settings.body_options
+        if type(body_opts) == "table" then
+            local new_opts = {}
+            for i, v in ipairs(body_opts) do
+                if v ~= "Jitter" and v ~= "Randomize Jitter" then
+                    table.insert(new_opts, v)
+                end
+            end
+            v51.references.body_yaw_options:override(new_opts)
+        else
+            v51.references.body_yaw_options:override({})
+        end
+    end;
 end;
 v58.preform_general = function(v900)
-    -- upvalues: v55 (ref), v51 (ref), v58 (ref), v39 (ref), v52 (ref)
-    local v901 = v55.disable_pitch or not v51.get("override_pitch");
+    local v901 = v55.disable_pitch or (not v51.get("override_pitch") and not v58.override_settings.safe_head);
     v51.references.pitch:override(v901 and "Disabled" or "Down");
     v901 = v55.disable_pitch or v51.get("override_yaw") == "None";
     v51.references.yaw:override(v901 and "Disabled" or "Backward");
@@ -3923,28 +4221,50 @@ v58.auto_preset = function(_)
     end;
 end;
 v58.get_state = function()
-    -- upvalues: v52 (ref), v30 (ref), v51 (ref)
-    if not v52.local_player() then
+    if not v52.local_player() or not v52.is_alive then
         return "global";
-    else
-        local v904 = v52.local_player().m_vecVelocity:length2d();
-        if v30.is_virtual_key_pressed(69) then
-            return "use";
-        elseif v52.is_in_air then
-            return "air";
-        elseif v904 <= 5 then
-            return "stand";
-        elseif v51.references.slow_walk:get() then
-            return "slow walk";
-        elseif v904 > 5 then
-            return "move";
-        else
-            return "global";
-        end;
     end;
+
+    local lp = v52.local_player();
+    if v30.is_virtual_key_pressed(69) then
+        return "use";
+    end;
+
+    local is_legit_aa = v30.is_virtual_key_pressed(1) or v30.is_virtual_key_pressed(2);
+    if is_legit_aa then
+        return "legit aa";
+    end;
+
+    if v51.references.freestand:get() or v51.references.freestand:get_override() then
+        return "freestand";
+    end;
+
+    local speed = lp.m_vecVelocity:length2d();
+    local duck_amount = lp.m_flDuckAmount or 0;
+    local on_ground = bit.band(lp.m_fFlags, 1) == 1;
+
+    if on_ground then
+        if v51.references.slow_walk:get() then
+            return "slow walk";
+        end;
+        if speed < 5 then
+            if duck_amount > 0 then
+                return "crouch";
+            end;
+            return "stand";
+        end;
+        if duck_amount > 0 then
+            return "sneak";
+        end;
+        return "run";
+    end;
+
+    if duck_amount > 0 then
+        return "air crouch";
+    end;
+    return "air";
 end;
 v58.get_sub_state = function()
-    -- upvalues: v52 (ref)
     if v52.is_fake_lag then
         return "fake lag";
     elseif v52.is_crouch then
@@ -3954,6 +4274,7 @@ v58.get_sub_state = function()
     end;
 end;
 v58.calculate_jitter = function(v905, v906, v907, v908)
+    if not v58 or not v58.delta_jitter then return 0 end
     -- upvalues: v58 (ref), v25 (ref)
     if not v58.delta_jitter.override[v908] then
         v58.delta_jitter.override[v908] = 1;
@@ -3982,27 +4303,107 @@ v58.calculate_jitter = function(v905, v906, v907, v908)
     return v58.delta_jitter.setup[v908];
 end;
 v58.default_builder = function(v910)
+    if not v36 then return end
     -- upvalues: v58 (ref), v51 (ref), v36 (ref)
     local v911 = v58.get_state();
     local v912 = v51.get(v36("enable_state_%s", v911)) and v911 or "global";
     local v913 = v58.get_sub_state();
     local v914 = v36("%s_%s", v912, v913);
+    if not v51.get(v36("custom_choke_%s", v914)) and string.find(v914, "fake lag") then
+        v914 = v36("%s_regular", v912);
+    end
     if not v51.get(v36("enable_%s", v914)) or not v914 then
         v914 = v36("%s_regular", v912);
     end;
     local v915 = rage.antiaim:inverter();
+    local is_delay = v51.get(v36("delay_%s", v914));
+    if is_delay then
+        local delay_mode = v51.get(v36("delay_method_%s", v914));
+        local delay_ticks = v51.get(v36("delay_default_%s", v914));
+        local min_delay = v51.get(v36("delay_random_min_%s", v914));
+        local max_delay = v51.get(v36("delay_random_max_%s", v914));
+        local div = 1.95;
+
+        if v910.choked_commands == 0 then
+            v58.switch_delay = (v58.switch_delay or 0) + 1;
+            if delay_mode == "Default" then
+                if v58.switch_delay >= delay_ticks / div then
+                    v58.switch_delay = 0;
+                    v58.delayed_side = not v58.delayed_side;
+                end;
+            elseif delay_mode == "Random" then
+                local utils = require("neverlose/utils");
+                if v58.switch_delay >= utils.random_int(min_delay, max_delay) / div then
+                    v58.switch_delay = 0;
+                    v58.delayed_side = not v58.delayed_side;
+                end;
+            elseif delay_mode == "Custom" then
+                v58.delay_slider_idx = v58.delay_slider_idx or 1
+                local d_custom_count = v51.get(v36("delay_custom_sliders_%s", v914)) or 2
+                if v58.delay_slider_idx > d_custom_count then v58.delay_slider_idx = 1 end
+                local custom_val = v51.get(v36("delay_%d_%s", v58.delay_slider_idx, v914)) or 14
+                
+                if v58.switch_delay >= custom_val / div then
+                    v58.switch_delay = 0;
+                    v58.delayed_side = not v58.delayed_side;
+                    v58.delay_slider_idx = v58.delay_slider_idx + 1
+                    if v58.delay_slider_idx > d_custom_count then v58.delay_slider_idx = 1 end
+                end
+            end;
+        end;
+        v915 = v58.delayed_side;
+    end;
+    
     local v916 = 0;
     local v917 = v51.get(v36("yaw_modifier_%s", v914));
     local v918 = v51.get(v36("yaw_modifier_delta_%s", v914));
-    if v917 == "Devided delta" then
-        v58.override_settings.yaw_modifier = "Disabled";
+    local m_mode = v51.get(v36("modifier_mode_%s", v914));
+    
+    if m_mode == "Custom" and v917 ~= "Disabled" then
+        v58.mod_slider_idx = v58.mod_slider_idx or 1
+        local m_custom_count = v51.get(v36("modifier_custom_sliders_%s", v914)) or 2
+        if v58.mod_slider_idx > m_custom_count then v58.mod_slider_idx = 1 end
+        v918 = v51.get(v36("modifier_%d_%s", v58.mod_slider_idx, v914)) or 0
+
+        v58.mod_cycle_tick = (v58.mod_cycle_tick or 0) + 1
+        if v58.mod_cycle_tick >= 14 then
+            v58.mod_cycle_tick = 0
+            v58.mod_slider_idx = v58.mod_slider_idx + 1
+        end
+    end
+
+    if v917 == "Devided delta" and m_mode == "Default" then
         v58.override_settings.yaw_modifier_offset = 0;
-        v916 = v58.calculate_jitter(v910, v51.get(v36("yaw_modifier_mode_%s", v914)), v918, "Builder");
+        v916 = v58.calculate_jitter(v910, v51.get(v36("yaw_modifier_mode_%s", v914)) or 3, v918, "Builder");
+    elseif v917 == "3-Way" then
+        v58.override_settings.yaw_modifier_offset = 0;
+        
+        v58.mod_cycle_tick_3way = (v58.mod_cycle_tick_3way or 0) + 1
+        if v58.mod_cycle_tick_3way >= 14 then
+            v58.mod_cycle_tick_3way = 0
+            v58.mod_3way = (v58.mod_3way or 0) + 1;
+            if v58.mod_3way > 3 then v58.mod_3way = 1 end
+        end
+        local vals = {0, v918, -v918}
+        v916 = vals[v58.mod_3way or 1]
+    elseif v917 == "5-Way" then
+        v58.override_settings.yaw_modifier_offset = 0;
+        
+        v58.mod_cycle_tick_5way = (v58.mod_cycle_tick_5way or 0) + 1
+        if v58.mod_cycle_tick_5way >= 14 then
+            v58.mod_cycle_tick_5way = 0
+            v58.mod_5way = (v58.mod_5way or 0) + 1;
+            if v58.mod_5way > 5 then v58.mod_5way = 1 end
+        end
+        local vals = {0, v918/2, v918, -v918/2, -v918}
+        v916 = vals[v58.mod_5way or 1]
     else
+        -- Native modifiers like Center, Offset, etc.
         v58.override_settings.yaw_modifier = v917;
         v58.override_settings.yaw_modifier_offset = v918;
     end;
     v58.override_settings.yaw_offset = v916 + (v915 and v51.get(v36("yaw_left_%s", v914)) or v51.get(v36("yaw_right_%s", v914)));
+    
     local v919 = {};
     local v920 = v51.get(v36("fake_options_%s", v914));
     if v920[1] then
@@ -4015,15 +4416,150 @@ v58.default_builder = function(v910)
         v919[#v919 + 1] = "Randomize Jitter";
     end;
     v58.override_settings.body_options = v919;
-    v58.override_settings.left_limit = v51.get(v36("left_limit_%s", v914));
-    v58.override_settings.right_limit = v51.get(v36("right_limit_%s", v914));
+
+    if v51.get("safe_head") then
+        local safe_conditions = v51.get("safe_head_conditions") or {}
+        local should_safe_head = false
+        local local_player = entity.get_local_player()
+        
+        if local_player then
+            if safe_conditions[1] and bit.band(local_player.m_fFlags, 1) == 0 and local_player.m_flDuckAmount > 0 then
+                should_safe_head = true
+            end
+            
+            local weapon = local_player:get_player_weapon()
+            if weapon then
+                local class = weapon:get_classname()
+                if safe_conditions[2] and class == "CWeaponTaser" then
+                    should_safe_head = true
+                end
+                
+                local wep_info = weapon:get_weapon_info()
+                if safe_conditions[3] and wep_info and wep_info.weapon_type == 0 then
+                    should_safe_head = true
+                end
+            end
+            
+            local threat = entity.get_threat()
+            if safe_conditions[4] and threat and threat:is_alive() and not threat:is_dormant() then
+                local origin = local_player:get_origin()
+                local threat_origin = threat:get_origin()
+                local delta_z = math.abs(origin.z - threat_origin.z)
+                local height_limit = v51.get("safe_head_height") or 25
+                
+                if delta_z >= height_limit then
+                    should_safe_head = true
+                end
+            end
+        end
+        
+        if should_safe_head then
+            v58.override_settings.safe_head = true;
+        else
+            v58.override_settings.safe_head = nil;
+        end
+    else
+        v58.override_settings.safe_head = nil;
+    end
+
+    if v51.get("avoid_backstab") then
+        local local_player = entity.get_local_player()
+        if local_player then
+            local enemies = entity.get_players(true)
+            local local_origin = local_player:get_origin()
+            local local_angles = render.camera_angles()
+            
+            for _, enemy in ipairs(enemies) do
+                if enemy:is_alive() and not enemy:is_dormant() then
+                    local enemy_origin = enemy:get_origin()
+                    local dist = local_origin:dist(enemy_origin)
+                    
+                    if dist < 300 then
+                        local dx = enemy_origin.x - local_origin.x
+                        local dy = enemy_origin.y - local_origin.y
+                        local angle_to = math.deg(math.atan(dy / dx))
+                        if dx < 0 then angle_to = angle_to + 180 end
+                        
+                        local raw_diff = angle_to - local_angles.y
+                        while raw_diff > 180 do raw_diff = raw_diff - 360 end
+                        while raw_diff < -180 do raw_diff = raw_diff + 360 end
+                        local angle_diff = math.abs(raw_diff)
+                        
+                        if angle_diff > 135 then
+                            v58.override_settings.yaw_offset = 180
+                            break
+                        end
+                    end
+                end
+            end
+        end
+    end
+    
+    -- Dynamic Desync Limits
+    local limit_mode = v51.get(v36("limit_mode_%s", v914)) or "Static"
+    if limit_mode == "Static" then
+        v58.override_settings.left_limit = v51.get(v36("left_limit_%s", v914));
+        v58.override_settings.right_limit = v51.get(v36("right_limit_%s", v914));
+    elseif limit_mode == "Random" then
+        local l_min = v51.get(v36("minimum_limit_%s", v914)) or 30
+        local l_max = v51.get(v36("maximum_limit_%s", v914)) or 60
+        local utils = require("neverlose/utils")
+        v58.override_settings.left_limit = utils.random_int(l_min, l_max);
+        v58.override_settings.right_limit = utils.random_int(l_min, l_max);
+    elseif limit_mode == "From/To" or limit_mode == "Speed-based Switch" then
+        local l_from = v51.get(v36("from_limit_%s", v914)) or 30
+        local l_to = v51.get(v36("to_limit_%s", v914)) or 60
+        
+        if limit_mode == "Speed-based Switch" then
+            if v910.choked_commands == 0 then
+                v58.speed_switch_ticks = (v58.speed_switch_ticks or 0) + 1
+                local spd = globals.tickinterval
+                if v58.speed_switch_ticks >= 14 then
+                    v58.speed_switch_ticks = 0
+                    v58.speed_switch_side = not v58.speed_switch_side
+                end
+            end
+            local inverter_val = v58.speed_switch_side
+            v58.override_settings.left_limit = inverter_val and l_from or l_to
+            v58.override_settings.right_limit = inverter_val and l_from or l_to
+        else
+            -- From/To based on inverter
+            v58.override_settings.left_limit = v915 and l_from or l_to
+            v58.override_settings.right_limit = v915 and l_from or l_to
+        end
+    end
+    
     v58.override_settings.freestand = v51.get(v36("freestand_desync_%s", v914));
 end;
 v58.decide_settings = function(v921)
     -- upvalues: v51 (ref), v32 (ref), v58 (ref)
     local v922 = v51.get("enable_anti_aim_misc");
     local v923 = v32.get_game_rules();
-    if v922[5] and v58.manual_side ~= 0 or v922[6] and v923.m_bWarmupPeriod then
+    
+    if v922[6] and v923.m_bWarmupPeriod then
+        local warmup_mode = v51.get("warmup_yaw")
+        local w_speed = v51.get("warmup_speed")
+        local tickcount = globals.tickcount
+        local final_yaw = 0
+        
+        if warmup_mode == "Spin" then
+            final_yaw = (tickcount * w_speed) % 360 - 180
+        elseif warmup_mode == "Distortion" then
+            final_yaw = math.sin(tickcount * w_speed / 100.0) * 180
+        elseif warmup_mode == "L/R" then
+            local l_yaw = v51.get("warmup_left_yaw")
+            local r_yaw = v51.get("warmup_right_yaw")
+            local inverter = rage.antiaim:inverter()
+            final_yaw = inverter and l_yaw or r_yaw
+        end
+        
+        v58.override_settings.yaw_offset = final_yaw
+        v58.override_settings.left_limit = 60
+        v58.override_settings.right_limit = 60
+        return
+    end
+
+    if v922[5] and v58.manual_side ~= 0 then
         return v58.static_settings(true, false);
     elseif v51.get("anti_aim_mode") == "Auto presets" then
         return v58.auto_preset();
@@ -4036,7 +4572,7 @@ v58.manuals = function()
     -- upvalues: v52 (ref), v154 (ref), v51 (ref), v58 (ref), v39 (ref), v30 (ref)
     if not v52.is_alive then
         return;
-    elseif v154.is_console_open() then
+    elseif v154 and type(v154.is_console_open) == "function" and v154.is_console_open() then
         return;
     elseif v51.get_bind("Manual back") then
         v58.manual_side = 0;
@@ -4070,7 +4606,7 @@ v58.render_manuals = function()
     -- upvalues: v52 (ref), v154 (ref), v51 (ref), v58 (ref), v29 (ref), v50 (ref), l_vector_0 (ref)
     if not v52.is_alive then
         return;
-    elseif v154.is_console_open() then
+    elseif v154 and type(v154.is_console_open) == "function" and v154.is_console_open() then
         return;
     elseif not v51.get("manuals_indicators") then
         return;
@@ -4093,9 +4629,12 @@ v58.render_manuals = function()
     end;
 end;
 v58.defensive_switch = function()
-    -- upvalues: v51 (ref), v58 (ref), v39 (ref), v25 (ref)
-    if not v51.get_bind("Defensive snap") and not v58.did_hit_ground then
-        v51.references.hidden:override(v39);
+    if v58.override_settings.safe_head then
+        v51.references.hidden:override(false);
+        return;
+    end
+    if not v51.get_bind("Defensive snap") then
+        v51.references.hidden:override(false);
         return;
     else
         local v932 = v58.did_hit_ground and -2 or 0;
@@ -4238,6 +4777,7 @@ v58.main = function(v953)
     end;
 end;
 v58.each_frame = function()
+    if not v36 then return end
     -- upvalues: v51 (ref), v52 (ref), v58 (ref)
     if not v51.get("override_anti_aim") then
         return;
@@ -4245,6 +4785,41 @@ v58.each_frame = function()
         return;
     else
         v58.defensive_switch();
+
+    local v911 = v58.get_state();
+    local v912 = v51.get(v36("enable_state_%s", v911)) and v911 or "global";
+    local v913 = v58.get_sub_state();
+    local v914 = v36("%s_%s", v912, v913);
+    if not v51.get(v36("custom_choke_%s", v914)) and string.find(v914, "fake lag") then
+        v914 = v36("%s_regular", v912);
+    end
+    if not v51.get(v36("enable_%s", v914)) or not v914 then
+        v914 = v36("%s_regular", v912);
+    end;
+
+    if v51.get(v36("custom_choke_%s", v914)) then
+        local mode = v51.get(v36("choke_mode_%s", v914))
+        local tick = 14
+        if mode == "Static" then
+            tick = v51.get(v36("choke_ticks_%s", v914))
+        elseif mode == "Random" then
+            local min = v51.get(v36("choke_min_%s", v914))
+            local max = v51.get(v36("choke_max_%s", v914))
+            tick = math.random(min, max)
+        elseif mode == "Pulse" then
+            local min = v51.get(v36("choke_min_%s", v914))
+            local max = v51.get(v36("choke_max_%s", v914))
+            local range = max - min
+            local factor = (math.sin(globals.tickcount * 0.1) + 1) / 2
+            tick = math.floor(min + (range * factor))
+        end
+        if v51.references.fake_lag_limit then
+            v51.references.fake_lag_limit:override(tick)
+        end
+    elseif v51.references.fake_lag_limit then
+        v51.references.fake_lag_limit:override(nil)
+    end
+
         v58.render_manuals();
         return;
     end;
@@ -5371,7 +5946,7 @@ v64.enable_chat = function(_, v1126, v1127)
         return;
     elseif not v30.is_csgo_selected() then
         return;
-    elseif v154.is_console_open() then
+    elseif v154 and type(v154.is_console_open) == "function" and v154.is_console_open() then
         return;
     elseif v28.get_alpha() > 0 then
         return;
@@ -5409,7 +5984,7 @@ v64.capture_input = function(_, v1133, v1134)
         return;
     elseif not v64.player then
         return;
-    elseif v154.is_console_open() then
+    elseif v154 and type(v154.is_console_open) == "function" and v154.is_console_open() then
         return;
     elseif not v64.enable_type.all and not v64.enable_type.team then
         return;
@@ -6822,61 +7397,133 @@ v74.on_local_hurt = function(v1366)
         end;
     end;
 end;
+local weapon_sounds_files = {
+    [40] = { -- SSG 08
+        ["MW19 Custom"] = "weap_cheytac_slmn_short_44k_mono.wav",
+        ["2018 Sounds"] = "SSG 08.wav",
+        orig_names = { "ssg08" }
+    },
+    [9] = { -- AWP
+        ["MW19 Custom"] = "AWP.wav",
+        ["2018 Sounds"] = "AWP.wav",
+        orig_names = { "awp" }
+    },
+    [38] = { -- SCAR-20
+        ["MW19 Custom"] = "SCAR-20.wav",
+        ["2018 Sounds"] = "SCAR-20.wav",
+        orig_names = { "scar20" }
+    },
+    [11] = { -- G3SG1
+        ["MW19 Custom"] = "G3SG1.wav",
+        ["2018 Sounds"] = "G3SG1.wav",
+        orig_names = { "g3sg1" }
+    },
+    [1] = { -- Desert Eagle
+        ["MW19 Custom"] = "weap_deserteagle_slmn.wav",
+        ["2018 Sounds"] = "Desert Eagle.wav",
+        orig_names = { "deagle" }
+    },
+    [64] = { -- R8 Revolver
+        ["MW19 Custom"] = "R8 Revolver.wav",
+        ["2018 Sounds"] = "R8 Revolver.wav",
+        orig_names = { "revolver" }
+    },
+    [3] = { -- Five-SeveN
+        ["MW19 Custom"] = "Five-SeveN.wav",
+        ["2018 Sounds"] = "Five-SeveN.wav",
+        orig_names = { "fiveseven" }
+    },
+    [30] = { -- Tec-9
+        ["MW19 Custom"] = "Tec-9.wav",
+        ["2018 Sounds"] = "Tec-9.wav",
+        orig_names = { "tec9" }
+    },
+    [61] = { -- USP-S
+        ["MW19 Custom"] = "weap_usps_sup_loud_44k_mono.wav",
+        ["2018 Sounds"] = "USP-S.wav",
+        orig_names = { "usp_silenced", "usp1" }
+    },
+    [4] = { -- Glock-18
+        ["MW19 Custom"] = "weap_glock_loud_44k_mono_v2.wav",
+        ["2018 Sounds"] = "weap_glock_loud_44k_mono_v2.wav",
+        orig_names = { "glock" }
+    },
+    [32] = { -- P2000
+        ["MW19 Custom"] = "weap_p2000_loud_44k_mono_v2.wav",
+        ["2018 Sounds"] = "weap_p2000_loud_44k_mono_v2.wav",
+        orig_names = { "hkp2000" }
+    }
+}
+
 v74.player_weapon = function()
-    -- upvalues: v52 (ref), v154 (ref), v36 (ref), v51 (ref)
-    local v1371 = v52.local_player():get_player_weapon():get_name();
-    local snd_name = v1371;
-    local vol_mult = 1.0;
-    if v51.get("weapon_sound_pack") == "MW19 Custom" then
-        if snd_name == "SSG 08" then
-            snd_name = "weap_cheytac_slmn_short_44k_mono"
-            vol_mult = 0.6;
-        elseif snd_name == "Desert Eagle" then
-            snd_name = "weap_deserteagle_slmn"
-        elseif snd_name == "USP-S" or snd_name == "USP-S Silenced" then
-            snd_name = "weap_usps_sup_loud_44k_mono"
-        elseif snd_name == "P2000" or snd_name == "HKP2000" or snd_name == "hkp2000" then
-            snd_name = "weap_p2000_loud_44k_mono_v2"
-        elseif snd_name == "Glock-18" or snd_name == "Glock 18" or snd_name == "glock" then
-            snd_name = "weap_glock_loud_44k_mono_v2"
-        end;
-    end;
-    local sound_path = v36("MadrillaSounds/%s.wav", snd_name);
-    local final_vol = (v51.get("weapons_sounds_volume") / 100) * vol_mult;
-    v154.play_sound(sound_path, 0, 100, 4, 0);
-    v154.play_sound(sound_path, final_vol, 100, 0, 0);
 end;
+
 v74.manual_shoot = function(v1372)
-    -- upvalues: v74 (ref), v52 (ref), v51 (ref), v30 (ref)
-    v74.snd:call("Weapons1", "vol", 0.7);
-    if not v52.is_alive then
-        return;
-    elseif not v51.get("weapons_sounds") then
-        return;
-    else
-        local v1373 = v52.local_player():get_player_weapon();
-        if not v1373 then
-            return;
-        elseif v1373:get_weapon_info().is_revolver then
-            return;
-        else
-            if v1372.in_attack and v30.can_fire(v52.local_player()) and not v51.references.fake_duck:get() then
-                v74.player_weapon();
-            end;
-            v74.snd:call("Weapons1", "vol", 0);
-            return;
-        end;
-    end;
 end;
+
 v74.auto_fire = function()
-    -- upvalues: v51 (ref), v74 (ref)
-    if not v51.get("weapons_sounds") then
-        return;
-    else
-        v74.player_weapon();
-        return;
-    end;
 end;
+
+v49.attach("emit_sound", function(v94)
+    if not v51.get("weapons_sounds") then return end
+    
+    local local_player = entity.get_local_player()
+    if not local_player then return end
+    
+    local shooter = v94.entity
+    if not shooter or not shooter.get_player_weapon then return end
+    
+    local is_local = (shooter == local_player)
+    local apply_others = v51.get("weapons_sounds_teammates")
+    if not is_local and not apply_others then return end
+    
+    local weapon = shooter:get_player_weapon()
+    if not weapon then return end
+    
+    local wp_idx = weapon:get_weapon_index()
+    local wp_info = weapon_sounds_files[wp_idx]
+    if not wp_info then return end
+    
+    local snd = v94.sound_name:lower()
+    if snd:find("draw") or snd:find("clip") or snd:find("reload") or snd:find("bolt") or snd:find("zoom") or snd:find("slide") or snd:find("cock") or snd:find("prepare") or snd:find("side") or snd:find("pump") or snd:find("insert") or snd:find("silencer") or snd:find("deploy") then
+        return
+    end
+    
+    local matched = false
+    for _, pattern in ipairs(wp_info.orig_names) do
+        if snd:find(pattern, 1, true) then
+            matched = true
+            break
+        end
+    end
+    
+    if not matched then return end
+    
+    local pack = v51.get("weapon_sound_pack")
+    local filename = wp_info[pack]
+    if not filename then return end
+    
+    local sound_path = "MadrillaSounds/" .. filename
+    
+    local vol_mult = 1.0
+    if pack == "MW19 Custom" and wp_idx == 40 then
+        vol_mult = 0.6
+    end
+    
+    local final_vol = (v51.get("weapons_sounds_volume") / 100) * vol_mult
+    
+    if not is_local then
+        local dist = (local_player.origin - shooter.origin):length()
+        if dist > 2500 then
+            return
+        end
+        local dist_mult = 1.0 - (dist / 2500)
+        final_vol = final_vol * dist_mult
+    end
+    
+    v94.volume = 0
+    cvar.playvol:call(sound_path, final_vol)
+end, "lua::sounds::emit_sound")
 v315 = nil;
 v315 = {};
 v547 = function(v1374)
@@ -6952,6 +7599,7 @@ do
                 v49.attach("render", v60.render, "lua::scope::render");
                 v49.attach("render", v61.render, "lua::view::render");
                 v49.attach("render", v62.render, "lua::world::render");
+
                 v49.attach("render", v69.render, "lua::side_indicators::render");
                 v49.attach("render", v64.player_spawn, "lua::headup_display::player_spawn");
                 v66.window:register_render(v66.render, "lua::watermark::render");
@@ -7030,3 +7678,1864 @@ do
     end;
 end;
 v315.main();
+
+events.render:set(function()
+    if not v51.get("enable_friendly_molotov") then return end
+    local me = entity.get_local_player()
+    if not me then return end
+    local my_team = me.m_iTeamNum
+    local col = v51.get("friendly_molotov_color")
+    local r, g, b, a = col.r, col.g, col.b, col.a
+    local infernos = entity.get_entities("CInferno")
+    for i = 1, #infernos do
+        local fire = infernos[i]
+        local thrower = entity.get(fire.m_hOwnerEntity)
+        if thrower then
+            local thrower_team = thrower.m_iTeamNum
+            local is_harmless = (thrower_team == my_team)
+            if is_harmless then
+                local origin = fire:get_origin()
+                local num_fires = fire.m_nNumFires
+                if num_fires and num_fires > 0 then
+                    local x_deltas = fire.m_fireXDelta
+                    local y_deltas = fire.m_fireYDelta
+                    local z_deltas = fire.m_fireZDelta
+                    local is_burning = fire.m_bFireIsBurning
+                    for j = 0, num_fires - 1 do
+                        if is_burning[j] then
+                            local flame_pos = vector(origin.x + x_deltas[j], origin.y + y_deltas[j], origin.z + z_deltas[j])
+                            render.circle_3d(flame_pos, color(r, g, b, math.max(a - 40, 10)), 40, 2, 1)
+                            render.circle_3d(flame_pos, color(r, g, b, a), 20, 1, 0)
+                        end
+                    end
+                else
+                    render.circle_3d(origin, color(r, g, b, math.max(a - 40, 10)), 150, 2, 1)
+                    render.circle_3d(origin, color(r, g, b, a), 75, 1, 0)
+                end
+            end
+        end
+    end
+end)
+
+-- [[ SMOKE HELPER ]]
+do
+    local smoke_helper = {
+        targets = {},           -- array of all grenade warnings this tick
+        active_target = nil,    -- the target we picked
+        active_entity = nil,    -- the entity we picked
+        target_time = 0,        -- when we received the warning
+        last_switch_time = 0,   -- rate limit weapon switch
+        is_throwing = false,    -- are we currently releasing the throw?
+        MAX_DISTANCE = 1000,
+        SWITCH_COOLDOWN = 1,    -- wait 1s between weapon switch attempts to prevent disconnect spam
+        THROW_SPEED = 750
+    }
+
+    events.grenade_warning:set(function(e)
+        if e.type == "Frag" then return end
+        if not v51.get("enable_smoke_helper") then return end
+        table.insert(smoke_helper.targets, {origin = e.origin, entity = e.entity})
+    end)
+
+    events.createmove:set(function(cmd)
+        if not v51.get("enable_smoke_helper") or not v51.get_bind("Smoke helper key") then
+            smoke_helper.active_target = nil
+            smoke_helper.targets = {}
+            return
+        end
+
+        local me = entity.get_local_player()
+        if not me then return end
+        local eye_pos = me:get_eye_position()
+
+        local manual_override = v51.get("smoke_helper_manual")
+        local weapon = me:get_player_weapon()
+        local wep_name = weapon and weapon:get_name() or ""
+        local is_holding_smoke = wep_name == "Smoke Grenade"
+
+        local max_dist = 250
+        local vert_dist = 350
+        local sync_dist = 500
+        
+        -- Lag compensation: adjust sync_dist based on real ping so it releases the grenade earlier if ping is high
+        local net = utils.net_channel()
+        if net and net.latency and net.latency[1] then
+            -- Fall speed is approx 800 units/s. Ping is in seconds.
+            sync_dist = sync_dist + (net.latency[1] * 800)
+        end
+        
+        local prep_dist = 1200
+
+        if smoke_helper.is_throwing and smoke_helper.active_target then
+            -- keep going with active_target
+        else
+            smoke_helper.active_target = nil
+            smoke_helper.active_entity = nil
+            local best_target = nil
+            local best_entity = nil
+            local best_score = 999999
+            
+            local view_angles = cmd.view_angles
+
+            for i, t in ipairs(smoke_helper.targets) do
+                local dx = t.origin.x - eye_pos.x
+                local dy = t.origin.y - eye_pos.y
+                local dz = t.origin.z - eye_pos.z
+                local dist_2d = math.sqrt(dx * dx + dy * dy)
+                local dist_z = math.abs(dz)
+                
+                local p_z = eye_pos.z
+                local t_z = t.origin.z + 10 -- Slightly above ground to avoid floor bumps
+                local tr_player_height = utils.trace_line(eye_pos, vector(t.origin.x, t.origin.y, p_z), me)
+                local tr_molly_height = utils.trace_line(vector(eye_pos.x, eye_pos.y, t_z), vector(t.origin.x, t.origin.y, t_z), me)
+                
+                -- If BOTH horizontal traces hit something, it's a solid wall blocking the entire path.
+                -- If at least one trace is clear, there is an open path (like over a ledge or under an overhang).
+                local wall_blocks = (tr_player_height.fraction < 1) and (tr_molly_height.fraction < 1)
+                
+                local in_auto_range = dist_2d <= max_dist and dist_z <= vert_dist and not wall_blocks
+                local is_valid = false
+                local score = dist_2d -- Default sort by distance
+
+                if manual_override and is_holding_smoke then
+                    local tr = utils.trace_line(eye_pos, t.origin, me)
+                    if tr.fraction == 1 then
+                        local pitch = math.deg(math.atan2(-dz, dist_2d))
+                        local yaw = math.deg(math.atan2(dy, dx))
+                        
+                        local delta_pitch = math.abs(view_angles.x - pitch)
+                        local delta_yaw = view_angles.y - yaw
+                        while delta_yaw > 180 do delta_yaw = delta_yaw - 360 end
+                        while delta_yaw < -180 do delta_yaw = delta_yaw + 360 end
+                        delta_yaw = math.abs(delta_yaw)
+                        
+                        local fov = math.sqrt(delta_pitch^2 + delta_yaw^2)
+                        if fov < 60 then
+                            is_valid = true
+                            score = fov
+                        end
+                    end
+                end
+                
+                -- Fallback to auto deploy if manual override didn't select it
+                if not is_valid and in_auto_range then
+                    is_valid = true
+                end
+
+                if is_valid and score < best_score then
+                    best_score = score
+                    best_target = t.origin
+                    best_entity = t.entity
+                end
+            end
+
+            smoke_helper.active_target = best_target
+            smoke_helper.active_entity = best_entity
+        end
+
+        smoke_helper.targets = {} -- Clear array for next tick
+
+        local target = smoke_helper.active_target
+        if not target then
+            return
+        end
+
+        local dx = target.x - eye_pos.x
+        local dy = target.y - eye_pos.y
+        local dz = target.z - eye_pos.z
+        local is_auto = v51.get("smoke_helper_mode") == "Auto deploy"
+        
+        local dist_to_land_3d = math.sqrt(dx * dx + dy * dy + dz * dz)
+
+        -- Check distance to the projectile entity itself
+        local molly_ent = smoke_helper.active_entity
+        local dist_to_impact = 0 -- Default to 0 (detonated/landed) if entity is invalid
+        if molly_ent and type(molly_ent.get_origin) == "function" then
+            -- Use pcall in case the entity is destroyed/invalid
+            local pcall_success, ent_origin = pcall(function() return molly_ent:get_origin() end)
+            if pcall_success and ent_origin then
+                -- Distance from the flying projectile to its predicted landing spot
+                dist_to_impact = math.sqrt((ent_origin.x - target.x)^2 + (ent_origin.y - target.y)^2 + (ent_origin.z - target.z)^2)
+            end
+        end
+
+        -- Wait until the molotov is in preparation range before doing ANYTHING (aiming or switching)
+        if dist_to_impact > prep_dist then
+            -- Let it keep falling
+            return
+        end
+        if wep_name == "Smoke Grenade" then
+            -- Get player velocity for compensation (INCLUDE vertical velocity for air throws)
+            local vel = me.m_vecVelocity
+
+            -- Calculate the desired throw direction vector
+            local horiz_dist = math.sqrt(dx * dx + dy * dy)
+            local pitch = math.atan2(-dz, horiz_dist)
+            local yaw = math.atan2(dy, dx)
+
+            -- Determine throw type based on distance to landing spot
+            local drop_dist = 150
+            local med_dist = 330
+            local hold_attack1 = false
+            local hold_attack2 = false
+            local throw_speed = smoke_helper.THROW_SPEED
+            local comp_factor = 1.25
+
+            if dist_to_land_3d <= drop_dist then
+                hold_attack2 = true
+                throw_speed = 300
+                comp_factor = 0 -- Disable compensation for drops to prevent wild aim snaps when running
+            elseif dist_to_land_3d <= med_dist then
+                hold_attack1 = true
+                hold_attack2 = true
+                throw_speed = 500
+                comp_factor = 0.6
+            else
+                hold_attack1 = true
+            end
+
+            -- Build the unit direction vector
+            local dir_x = math.cos(pitch) * math.cos(yaw)
+            local dir_y = math.cos(pitch) * math.sin(yaw)
+            local dir_z = -math.sin(pitch)
+
+            -- Compensate: desired_velocity = direction * throw_speed
+            -- actual_throw = desired_velocity - player_velocity * compensation_factor
+            local comp_x = dir_x * throw_speed - vel.x * comp_factor
+            local comp_y = dir_y * throw_speed - vel.y * comp_factor
+            local comp_z = dir_z * throw_speed - vel.z * comp_factor
+
+            -- Convert compensated vector back to view angles
+            local comp_horiz = math.sqrt(comp_x * comp_x + comp_y * comp_y)
+            cmd.view_angles.x = -math.deg(math.atan2(comp_z, comp_horiz))
+            cmd.view_angles.y = math.deg(math.atan2(comp_y, comp_x))
+
+            if is_auto then
+
+                -- Handle the throw: hold attack until pin is pulled, then release when in sync range
+                if smoke_helper.is_throwing then
+                    -- We've decided to throw, force buttons released
+                    cmd.in_attack = false
+                    cmd.in_attack2 = false
+                elseif weapon.m_bPinPulled then
+                    if dist_to_impact <= sync_dist then
+                        -- Pin pulled and synced = set throwing flag and release
+                        smoke_helper.is_throwing = true
+                        cmd.in_attack = false
+                        cmd.in_attack2 = false
+                    else
+                        -- Keep holding it while it falls
+                        cmd.in_attack = hold_attack1
+                        cmd.in_attack2 = hold_attack2
+                    end
+                else
+                    -- Hold attack to pull pin
+                    cmd.in_attack = hold_attack1
+                    cmd.in_attack2 = hold_attack2
+                end
+            end
+        else
+            -- Not holding smoke grenade, clear throwing state
+            smoke_helper.is_throwing = false
+            if is_auto then
+                -- If we don't have a smoke out, try to switch (rate limited to avoid disconnect spam)
+                if globals.curtime - smoke_helper.last_switch_time > smoke_helper.SWITCH_COOLDOWN then
+                    smoke_helper.last_switch_time = globals.curtime
+                    utils.console_exec("use weapon_smokegrenade", cmd)
+                end
+            end
+        end
+
+        -- Clear target at the end of the tick unless we are actively throwing
+        if not smoke_helper.is_throwing then
+            smoke_helper.active_target = nil
+            smoke_helper.active_entity = nil
+        end
+    end)
+end
+
+-- =========================================================================
+-- V's Dynamic Goon Corner (Headless Mode for CS:GO)
+-- =========================================================================
+
+-- IMPORTANT: DO NOT USE IMGUR LINKS HERE! 
+-- Imgur compresses images into Progressive JPEGs which instantly crash the Neverlose image parser.
+-- Use direct image links from Discord, Catbox, or other standard image hosts.
+local debug_status = "Loading URLs..."
+local urls_goth = {}
+local urls_white = {}
+local urls_asian = {}
+local urls_all = {}
+local urls_egirl = {}
+local urls_anime = {}
+local goon_corner_urls = urls_all
+local urls_loaded = false
+local total_images_viewed = 0
+local current_category = "All"
+
+local image_aspects = {
+    ["by onlypacks.lol (1).jpg"] = 0.7485101311084624,
+    ["by onlypacks.lol (1).webp"] = 0.75,
+    ["by onlypacks.lol (2).jpg"] = 0.746824480369515,
+    ["by onlypacks.lol (3).jpg"] = 0.75,
+    ["by onlypacks.lol (5).jpg"] = 1.355081555834379,
+    ["by onlypacks.lol (53).jpg"] = 0.75,
+    ["by onlypacks.lol (57).jpg"] = 0.75,
+    ["by onlypacks.lol (61).jpg"] = 0.75,
+    ["by onlypacks.lol (62).jpg"] = 0.75,
+    ["by onlypacks.lol (63).jpg"] = 0.75,
+    ["by onlypacks.lol (64).jpg"] = 0.7494145199063232,
+    ["by onlypacks.lol (66).jpg"] = 0.7494145199063232,
+    ["by onlypacks.lol (68).jpg"] = 1.3333333333333333,
+    ["by onlypacks.lol (7).jpg"] = 0.8023774145616642,
+    ["by onlypacks.lol (71).jpg"] = 0.7496251874062968,
+    ["by onlypacks.lol (72).jpg"] = 0.75,
+    ["by onlypacks.lol (73).jpg"] = 0.7496251874062968,
+    ["by onlypacks.lol (74).jpg"] = 0.8126410835214447,
+    ["by onlypacks.lol (77).jpg"] = 0.75,
+    ["by onlypacks.lol (78).jpg"] = 0.5722278738555443,
+    ["1012x1350_082370821ec1849576d7d0c3f7380f4d.jpg"] = 0.7496296296296296,
+    ["1013x1350_8826aec2dd93a1c5b072f4a0e3dd8479.jpg"] = 0.7503703703703704,
+    ["1640915276919.jpg"] = 1.0,
+    ["195.jpeg"] = 0.7750484809308339,
+    ["20231224_030126.jpg"] = 1.2052730696798493,
+    ["20240605_152135.jpg"] = 1.054582904222451,
+    ["2445ae53d43e50a784c5ba37712a1158.jpg"] = 0.8344671201814059,
+    ["316F99F0-42D3-48D8-BF02-AF8AC99406A6.jpg"] = 0.7490234375,
+    ["3680x5520_9d5981e6d3e4d93849c9d3e8ef2f9e50.jpg"] = 0.6666666666666666,
+    ["3840x5761_c914706306b41cd4f0806ff20e06ad7d.jpg"] = 0.6665509460163166,
+    ["900x1350_314c1da6f0be350bb86b25c606749e79.jpg"] = 0.6666666666666666,
+    ["900x1350_879d6b94b0bde5847e1943dac139ab7b.jpg"] = 0.6666666666666666,
+    ["900x1350_9e72ff6a58b275e63cf628122547599a.jpg"] = 0.6666666666666666,
+    ["900x1350_ad8919b179e9d0eba15e8b7e5bd9952a.jpg"] = 0.6666666666666666,
+    ["900x1350_b5e14dfd94ead1161646ecf5d6573927.jpg"] = 0.6666666666666666,
+    ["@OnlyShareOfficial TELEGRAM (134).jpg"] = 0.5630383711824589,
+    ["@OnlyShareOfficial TELEGRAM (30).jpg"] = 0.75,
+    ["@OnlyShareOfficial TELEGRAM (31).jpg"] = 0.8017817371937639,
+    ["@OnlyShareOfficial TELEGRAM (48).jpg"] = 0.6683154712833196,
+    ["IMG_0833.png"] = 0.8081896551724138,
+    ["IMG_20230805_145257_173.jpg"] = 1.105424769703173,
+    ["IMG_2461.webp"] = 0.6514954486345904,
+    ["IMG_9130.png"] = 0.9933774834437086,
+    ["More at @robinhoodcenter(Telegram) 10.jpg"] = 0.5461956521739131,
+    ["More at robinhoodcenter.net 1053.jpg"] = 0.75,
+    ["More at robinhoodcenter.net 1063.jpg"] = 0.75,
+    ["More at robinhoodcenter.net 347.jpg"] = 0.5625,
+    ["More at robinhoodcenter.net 605.jpg"] = 0.5634057971014492,
+    ["More at robinhoodcenter.net 631.jpg"] = 0.5634057971014492,
+    ["More at robinhoodcenter.net 633.jpg"] = 0.5634057971014492,
+    ["More at robinhoodcenter.net 635.jpg"] = 0.5634057971014492,
+    ["More at robinhoodcenter.net 657.jpg"] = 0.5634057971014492,
+    ["More at robinhoodcenter.net 677.jpg"] = 0.5634057971014492,
+    ["More at robinhoodcenter.net 777.jpg"] = 0.5634057971014492,
+    ["More at robinhoodcenter.net 815.jpg"] = 0.5634057971014492,
+    ["More at robinhoodcenter.net 911.jpg"] = 0.5634057971014492,
+    ["More at robinhoodcenter.net 939.jpg"] = 0.5634057971014492,
+    ["PICS -  by Gigafans.net0.jpeg"] = 0.4930555555555556,
+    ["PICS -  by Gigafans.net0.jpg"] = 0.49314692982456143,
+    ["PICS -  by Gigafans.net135.png"] = 0.75,
+    ["PICS -  by Gigafans.net191.png"] = 0.75,
+    ["PICS -  by Gigafans.net193.png"] = 0.75,
+    ["PICS -  by Gigafans.net198.jpg"] = 0.537109375,
+    ["PICS -  by Gigafans.net2.png"] = 0.6559734513274337,
+    ["PICS -  by Gigafans.net212.jpg"] = 0.750733137829912,
+    ["PICS -  by Gigafans.net223.jpg"] = 0.9937888198757764,
+    ["PICS -  by Gigafans.net224.jpg"] = 0.75,
+    ["PICS -  by Gigafans.net231.jpg"] = 0.75,
+    ["PICS -  by Gigafans.net271.png"] = 0.75,
+    ["PICS -  by Gigafans.net273.png"] = 0.75,
+    ["PICS -  by Gigafans.net294.jpg"] = 0.590625,
+    ["PICS -  by Gigafans.net295.jpg"] = 0.59921875,
+    ["PICS -  by Gigafans.net297.jpg"] = 0.59609375,
+    ["PICS -  by Gigafans.net299.jpg"] = 0.6669921875,
+    ["PICS -  by Gigafans.net323.jpg"] = 0.75,
+    ["PICS -  by Gigafans.net517.jpg"] = 0.5620608899297423,
+    ["PICS -  by Gigafans.net580.jpg"] = 0.5621761658031088,
+    ["PICS -  by Gigafans.net65.png"] = 0.5717472118959108,
+    ["PICS -  by Gigafans.net820.jpg"] = 0.75,
+    ["Tumblr_l_359227783935718.jpg"] = 0.75634765625,
+    ["Tumblr_l_60467305736603.jpg"] = 1.5303571428571427,
+    ["img_0000.png"] = 0.6488888888888888,
+    ["img_0001.png"] = 0.75,
+    ["img_0002.png"] = 0.75,
+    ["img_0004.jpg"] = 0.75,
+    ["img_0005.jpg"] = 0.75,
+    ["img_0006.jpg"] = 0.75,
+    ["img_0007.jpg"] = 0.75,
+    ["img_0008.jpg"] = 0.75,
+    ["img_0011.jpg"] = 1.4089157952669236,
+    ["img_0012.jpg"] = 0.694921875,
+    ["img_0013.jpg"] = 0.76640625,
+    ["img_0014.jpg"] = 0.846875,
+    ["img_0015.jpg"] = 1.3333333333333333,
+    ["img_0016.jpg"] = 0.737109375,
+    ["img_0017.jpg"] = 0.5628847845206685,
+    ["img_0018.jpg"] = 0.7408363448631905,
+    ["img_0020.png"] = 1.4120553359683794,
+    ["img_0022.png"] = 0.7841796875,
+    ["img_0025.png"] = 1.3333333333333333,
+    ["img_0026.png"] = 0.75,
+    ["img_0028.png"] = 0.7529411764705882,
+    ["img_0030.png"] = 0.75,
+    ["img_0032.png"] = 0.75,
+    ["img_0034.png"] = 1.3333333333333333,
+    ["img_0036.png"] = 0.6352941176470588,
+    ["img_0038.jpg"] = 0.920863309352518,
+    ["img_0040.jpg"] = 0.5686666666666667,
+    ["img_0042.jpg"] = 0.74921875,
+    ["img_0043.jpg"] = 0.75,
+    ["img_0044.png"] = 0.7420435510887772,
+    ["img_0045.png"] = 0.75,
+    ["img_0046.jpg"] = 0.5625,
+    ["img_0048.png"] = 0.6683168316831684,
+    ["img_0049.png"] = 0.6683168316831684,
+    ["img_0050.png"] = 0.9833984375,
+    ["img_0053.jpg"] = 0.75,
+    ["img_0055.jpg"] = 0.75,
+    ["img_0057.jpg"] = 0.75,
+    ["img_0059.png"] = 0.66650390625,
+    ["img_0061.png"] = 0.6683168316831684,
+    ["img_0063.png"] = 0.75,
+    ["img_0065.png"] = 0.6987735566856117,
+    ["img_0067.jpg"] = 0.6249618553555081,
+    ["img_0069.jpeg"] = 0.7497886728655959,
+    ["img_0070.png"] = 0.75,
+    ["img_0071.png"] = 0.75,
+    ["img_0073.jpg"] = 0.5729632945389436,
+    ["img_0074.png"] = 0.579136690647482,
+    ["img_0075.jpg"] = 0.6810650887573965,
+    ["img_0076.png"] = 0.7485294117647059,
+    ["img_0077.png"] = 0.76806640625,
+    ["img_0078.jpg"] = 1.249757986447241,
+    ["img_0084.jpg"] = 1.3588110403397027,
+    ["img_0085.jpg"] = 0.7625,
+    ["img_0086.png"] = 1.3333333333333333,
+    ["img_0087.jpg"] = 0.5656660412757973,
+    ["img_0088.jpg"] = 0.575107296137339,
+    ["img_0089.jpg"] = 0.6667251667251667,
+    ["img_0090.jpeg"] = 0.7358490566037735,
+    ["img_0091.png"] = 0.7829457364341085,
+    ["img_0093.jpg"] = 0.75,
+    ["img_0094.jpg"] = 0.75,
+    ["img_0095.jpg"] = 0.6372498717290919,
+    ["img_0096.jpg"] = 0.8132022471910112,
+    ["img_0097.jpg"] = 0.7282944028206259,
+    ["img_0100.jpg"] = 0.75,
+    ["img_0101.jpg"] = 0.703514739229025,
+    ["img_0102.jpg"] = 0.7313705583756345,
+    ["img_0103.jpg"] = 0.7880935506732814,
+    ["img_0104.jpg"] = 0.75,
+    ["img_0105.png"] = 0.75,
+    ["img_0106.jpg"] = 0.439469320066335,
+    ["img_0107.png"] = 1.3349814585908528,
+    ["img_0108.jpg"] = 0.8689492325855962,
+    ["img_0109.png"] = 0.69287109375,
+    ["img_0110.png"] = 0.69921875,
+    ["img_0112.jpg"] = 1.3544973544973544,
+    ["img_0114.jpg"] = 0.80078125,
+    ["img_0115.jpg"] = 0.75,
+    ["img_0116.jpg"] = 0.7505863956215794,
+    ["img_0118.jpg"] = 0.5625,
+    ["img_0119.jpg"] = 0.5625,
+    ["img_0120.png"] = 1.0169491525423728,
+    ["img_0122.jpeg"] = 0.8399138549892319,
+    ["img_0124.jpg"] = 1.37421875,
+    ["img_0125.jpg"] = 1.3349814585908528,
+    ["img_0126.png"] = 0.5684931506849316,
+    ["img_0133.jpg"] = 0.7513927576601671,
+    ["img_0134.jpg"] = 0.7513927576601671,
+    ["img_0135.jpg"] = 0.6140724946695096,
+    ["img_0136.jpg"] = 0.7531380753138075,
+    ["img_0137.jpg"] = 0.7534246575342466,
+    ["img_0138.jpg"] = 0.7531380753138075,
+    ["img_0139.jpg"] = 0.7554206418039896,
+    ["img_0140.jpg"] = 0.6891541255838091,
+    ["img_0141.jpg"] = 0.9937065253395164,
+    ["img_0142.jpg"] = 0.741267787839586,
+    ["img_0143.jpg"] = 0.9171507184347294,
+    ["img_0144.jpg"] = 1.0,
+    ["img_0145.jpg"] = 0.759375,
+    ["img_0146.jpg"] = 1.3333333333333333,
+    ["img_0147.jpg"] = 0.5630498533724341,
+    ["img_0148.png"] = 0.7176308539944903,
+    ["img_0149.png"] = 0.6117247238742566,
+    ["img_0150.png"] = 1.1216350947158524,
+    ["img_0151.jpeg"] = 0.7551127425275301,
+    ["img_0152.webp"] = 0.5648720211827007,
+    ["img_0153.webp"] = 0.7489597780859917,
+    ["img_0154.jpg"] = 1.82225656877898,
+    ["img_0155.jpg"] = 0.5625,
+    ["img_0156.jpg"] = 0.72578125,
+    ["img_0157.jpg"] = 0.8013355592654424,
+    ["img_0158.jpg"] = 0.825,
+    ["img_0159.jpg"] = 0.771484375,
+    ["img_0160.jpg"] = 0.8486328125,
+    ["img_0161.jpg"] = 0.7632911392405063,
+    ["img_0162.jpg"] = 0.5625,
+    ["img_0163.png"] = 0.5705996131528046,
+    ["img_0164.png"] = 0.5629770992366412,
+    ["img_0165.png"] = 0.7507820646506778,
+    ["img_0166.png"] = 0.7507820646506778,
+    ["img_0167.png"] = 0.7507820646506778,
+    ["img_0168.png"] = 0.75,
+    ["img_0169.png"] = 0.75,
+    ["img_0170.png"] = 0.75,
+    ["img_0171.png"] = 0.9262435677530018,
+    ["img_0172.png"] = 0.7535321821036107,
+    ["img_0173.jpg"] = 0.75,
+    ["img_0174.jpg"] = 0.7468571428571429,
+    ["img_0183.png"] = 0.75,
+    ["img_0184.png"] = 0.75,
+    ["img_0185.png"] = 0.8441814595660749,
+    ["img_0186.png"] = 0.7591687041564792,
+    ["img_0187.jpg"] = 0.75,
+    ["img_0188.jpg"] = 1.8091872791519434,
+    ["img_0189.jpg"] = 0.709819247679531,
+    ["img_0190.jpg"] = 0.7872195785180149,
+    ["img_0191.png"] = 0.94921875,
+    ["img_0192.jpg"] = 0.6346666666666667,
+    ["img_0193.jpg"] = 0.7609375,
+    ["img_0194.png"] = 0.75,
+    ["img_0195.png"] = 0.75,
+    ["img_0196.png"] = 1.8618181818181818,
+    ["img_0197.jpg"] = 0.7533843437316068,
+    ["img_0198.jpg"] = 0.75,
+    ["img_0199.jpg"] = 0.75,
+    ["img_0200.jpg"] = 0.7501221299462628,
+    ["img_0201.jpg"] = 0.7501620220349967,
+    ["img_0202.jpg"] = 0.75,
+    ["img_0203.jpg"] = 0.75,
+    ["img_0204.jpg"] = 0.7761685319289006,
+    ["img_0205.png"] = 0.75,
+    ["img_0206.jpg"] = 0.75,
+    ["img_0210.png"] = 0.75546875,
+    ["img_0211.jpg"] = 0.7428571428571429,
+    ["img_0212.webp"] = 0.75,
+    ["img_0213.jpg"] = 0.75,
+    ["img_0214.jpg"] = 1.3333333333333333,
+    ["img_0215.jpg"] = 0.6676557863501483,
+    ["img_0216.jpg"] = 0.8210306406685237,
+    ["img_0217.jpg"] = 1.3333333333333333,
+    ["img_0218.jpg"] = 1.3333333333333333,
+    ["img_0219.jpg"] = 0.7950101146325017,
+    ["img_0220.jpg"] = 0.7955465587044535,
+    ["img_0221.jpg"] = 0.7761685319289006,
+    ["img_0222.jpg"] = 0.5676905574516496,
+    ["img_0223.jpg"] = 0.6098294884653962,
+    ["img_0224.jpg"] = 0.6033797216699801,
+    ["img_0226.jpg"] = 0.8342939481268011,
+    ["img_0227.jpg"] = 0.5625,
+    ["img_0228.jpg"] = 1.0362694300518134,
+    ["img_0229.png"] = 0.75,
+    ["img_0230.png"] = 0.6507936507936508,
+    ["img_0231.jpg"] = 0.75,
+    ["img_0232.webp"] = 0.75,
+    ["img_0234.png"] = 0.78515625,
+    ["img_0235.png"] = 0.75,
+    ["img_0236.jpg"] = 0.94921875,
+    ["img_0237.webp"] = 0.75,
+    ["img_0238.jpg"] = 0.7391304347826086,
+    ["img_0240.jpeg"] = 0.75,
+    ["img_0241.jpg"] = 0.38203125,
+    ["img_0242.jpg"] = 0.70625,
+    ["img_0243.png"] = 0.712890625,
+    ["img_0245.jpg"] = 0.75,
+    ["img_0268.jpg"] = 0.5163015792154865,
+    ["img_0269.jpg"] = 0.8595393801535399,
+    ["img_0271.jpg"] = 0.75,
+    ["img_0272.jpg"] = 0.75,
+    ["img_0273.png"] = 1.0,
+    ["img_0274.png"] = 0.669260700389105,
+    ["img_0275.jpg"] = 0.749609375,
+    ["img_0276.jpg"] = 1.7827298050139275,
+    ["img_0277.jpg"] = 1.3333333333333333,
+    ["img_0278.jpg"] = 0.8006666666666666,
+    ["img_0279.jpg"] = 0.8006666666666666,
+    ["img_0280.jpg"] = 0.8006666666666666,
+    ["img_0281.png"] = 0.7502930832356389,
+    ["img_0283.jpg"] = 0.75,
+    ["img_0284.jpg"] = 0.75,
+    ["img_0285.jpg"] = 0.5625,
+    ["img_0286.jpg"] = 0.5625,
+    ["img_0289.jpg"] = 0.75,
+    ["img_0295.webp"] = 1.3793103448275863,
+    ["img_0300.jpg"] = 0.75,
+    ["img_0301.png"] = 0.8221476510067114,
+    ["img_0302.jpg"] = 1.297029702970297,
+    ["img_0303.png"] = 0.6279296875,
+    ["img_0307.png"] = 1.61101243339254,
+    ["img_0308.jpg"] = 0.80078125,
+    ["img_0309.jpg"] = 0.80078125,
+    ["img_0311.jpg"] = 0.5625,
+    ["img_0312.jpg"] = 0.8529118136439268,
+    ["img_0313.jpg"] = 0.75,
+    ["img_0314.jpg"] = 0.75,
+    ["img_0315.jpg"] = 0.75,
+    ["img_0316.jpg"] = 0.80078125,
+    ["img_0317.jpg"] = 1.2158590308370043,
+    ["img_0327.png"] = 0.63046875,
+    ["img_0328.png"] = 0.7419859265050821,
+    ["img_0329.png"] = 0.8598726114649682,
+    ["img_0330.png"] = 0.653125,
+    ["img_0331.png"] = 1.296518607442977,
+    ["img_0332.png"] = 0.721875,
+    ["img_0333.png"] = 0.75048828125,
+    ["img_0334.jpeg"] = 0.7266666666666667,
+    ["img_0335.png"] = 0.5625,
+    ["img_0336.jpg"] = 0.75,
+    ["img_0337.jpg"] = 1.0,
+    ["img_0338.png"] = 0.75,
+    ["img_0339.png"] = 0.75,
+    ["img_0340.png"] = 0.75,
+    ["img_0341.png"] = 0.7342452369320958,
+    ["img_0342.png"] = 0.75,
+    ["img_0343.png"] = 1.0551262235960845,
+    ["img_0344.jpg"] = 0.75,
+    ["img_0345.jpg"] = 0.74921875,
+    ["img_0346.jpg"] = 0.75,
+    ["img_0347.jpg"] = 0.75,
+    ["img_0348.jpg"] = 0.75,
+    ["img_0349.jpg"] = 0.75,
+    ["img_0350.jpg"] = 0.75,
+    ["img_0351.jpg"] = 0.75,
+    ["img_0352.jpg"] = 0.74921875,
+    ["img_0353.jpg"] = 0.74921875,
+    ["img_0354.jpg"] = 1.0137741046831956,
+    ["img_0355.png"] = 0.8891666666666667,
+    ["img_0357.jpg"] = 0.7563176895306859,
+    ["img_0359.png"] = 0.7520661157024794,
+    ["img_0360.png"] = 0.5551181102362205,
+    ["img_0361.png"] = 0.5065274151436031,
+    ["img_0363.jpg"] = 0.57734375,
+    ["img_0364.jpg"] = 0.56171875,
+    ["img_0365.jpg"] = 0.62890625,
+    ["img_0366.jpg"] = 0.7070101857399641,
+    ["img_0367.png"] = 0.75,
+    ["img_0369.png"] = 0.7292370020256583,
+    ["img_0370.png"] = 0.8695652173913043,
+    ["img_0371.png"] = 0.8801955990220048,
+    ["img_0374.jpg"] = 0.8328125,
+    ["img_0383.png"] = 0.75,
+    ["img_0384.png"] = 0.8,
+    ["img_0387.jpg"] = 0.75,
+    ["img_0391.jpg"] = 1.3333333333333333,
+    ["img_0398.png"] = 0.601956745623069,
+    ["img_0399.png"] = 1.0,
+    ["img_0400.png"] = 1.0,
+    ["img_0401.jpeg"] = 0.7717206132879046,
+    ["img_0405.png"] = 0.75,
+    ["img_0406.png"] = 1.3333333333333333,
+    ["img_0407.png"] = 0.7225,
+    ["img_0408.jpg"] = 0.74921875,
+    ["img_0410.jpg"] = 0.74921875,
+    ["img_0411.png"] = 0.56298828125,
+    ["img_0412.png"] = 0.75,
+    ["img_0413.jpg"] = 1.3917525773195876,
+    ["img_0414.png"] = 0.75,
+    ["img_0415.jpg"] = 0.8,
+    ["img_0417.png"] = 0.8,
+    ["img_0418.jpg"] = 0.7502930832356389,
+    ["img_0419.jpg"] = 0.7511737089201878,
+    ["img_0420.jpg"] = 0.7546875,
+    ["img_0421.jpg"] = 0.75,
+    ["img_0422.jpg"] = 1.3333333333333333,
+    ["img_0424.jpg"] = 0.8583984375,
+    ["img_0425.jpg"] = 0.75,
+    ["img_0426.jpg"] = 0.75,
+    ["img_0427.jpg"] = 0.7509554140127389,
+    ["img_0428.jpg"] = 0.92626953125,
+    ["img_0429.jpg"] = 0.75,
+    ["img_0430.png"] = 1.3333333333333333,
+    ["img_0431.png"] = 0.75,
+    ["img_0432.png"] = 0.7079646017699115,
+    ["img_0436.jpg"] = 0.8,
+    ["img_0437.webp"] = 0.7494145199063232,
+    ["img_0440.png"] = 0.8030753968253969,
+    ["img_0445.png"] = 0.8254397834912043,
+    ["unknown-25.png"] = 1.0,
+    ["✨@ofxmega on [TELEGRAM] 05.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 08.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 1196.jpg"] = 0.7868852459016393,
+    ["✨@ofxmega on [TELEGRAM] 1197.jpg"] = 1.3306666666666667,
+    ["✨@ofxmega on [TELEGRAM] 1198.jpg"] = 1.3306666666666667,
+    ["✨@ofxmega on [TELEGRAM] 1199.jpg"] = 0.7506527415143603,
+    ["✨@ofxmega on [TELEGRAM] 1200.jpg"] = 1.875,
+    ["✨@ofxmega on [TELEGRAM] 1201.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 1202.jpg"] = 0.8483606557377049,
+    ["✨@ofxmega on [TELEGRAM] 1203.jpg"] = 0.751503006012024,
+    ["✨@ofxmega on [TELEGRAM] 1204.jpg"] = 0.751503006012024,
+    ["✨@ofxmega on [TELEGRAM] 1205.jpg"] = 0.7836734693877551,
+    ["✨@ofxmega on [TELEGRAM] 1206.jpg"] = 0.7836734693877551,
+    ["✨@ofxmega on [TELEGRAM] 1207.jpg"] = 0.7506527415143603,
+    ["✨@ofxmega on [TELEGRAM] 1208.jpg"] = 0.7506527415143603,
+    ["✨@ofxmega on [TELEGRAM] 1209.jpg"] = 0.7836734693877551,
+    ["✨@ofxmega on [TELEGRAM] 1210.jpg"] = 0.7876923076923077,
+    ["✨@ofxmega on [TELEGRAM] 1211.jpg"] = 0.7901234567901234,
+    ["✨@ofxmega on [TELEGRAM] 1212.jpg"] = 0.7506527415143603,
+    ["✨@ofxmega on [TELEGRAM] 1213.jpg"] = 0.7506527415143603,
+    ["✨@ofxmega on [TELEGRAM] 1214.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 1217.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 1218.jpg"] = 1.334106728538283,
+    ["✨@ofxmega on [TELEGRAM] 1219.jpg"] = 1.334106728538283,
+    ["✨@ofxmega on [TELEGRAM] 15.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 16.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 18.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 188.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 189.jpg"] = 1.3333333333333333,
+    ["✨@ofxmega on [TELEGRAM] 19.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 190.jpg"] = 1.3333333333333333,
+    ["✨@ofxmega on [TELEGRAM] 191.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 192.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 196.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 197.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 199.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 20.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 201.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 202.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 203.jpg"] = 1.3333333333333333,
+    ["✨@ofxmega on [TELEGRAM] 205.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 209.jpg"] = 1.3333333333333333,
+    ["✨@ofxmega on [TELEGRAM] 21.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 216.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 218.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 219.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 222.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 227.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 230.jpg"] = 1.3333333333333333,
+    ["✨@ofxmega on [TELEGRAM] 231.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 233.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 235.jpg"] = 1.3333333333333333,
+    ["✨@ofxmega on [TELEGRAM] 236.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 238.jpg"] = 1.3333333333333333,
+    ["✨@ofxmega on [TELEGRAM] 239.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 240.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 241.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 242.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 243.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 244.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 245.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 246.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 247.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 248.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 250.jpg"] = 1.3333333333333333,
+    ["✨@ofxmega on [TELEGRAM] 251.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 252.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 253.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 254.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 255.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 256.jpg"] = 1.3333333333333333,
+    ["✨@ofxmega on [TELEGRAM] 257.jpg"] = 1.3333333333333333,
+    ["✨@ofxmega on [TELEGRAM] 258.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 259.jpg"] = 1.3333333333333333,
+    ["✨@ofxmega on [TELEGRAM] 260.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 261.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 266.jpg"] = 1.3333333333333333,
+    ["✨@ofxmega on [TELEGRAM] 268.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 269.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 27.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 270.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 273.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 274.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 275.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 276.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 277.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 279.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 280.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 281.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 282.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 283.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 285.jpg"] = 1.3333333333333333,
+    ["✨@ofxmega on [TELEGRAM] 286.jpg"] = 0.6316964285714286,
+    ["✨@ofxmega on [TELEGRAM] 287.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 289.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 29.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 290.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 293.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 294.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 296.jpg"] = 1.3333333333333333,
+    ["✨@ofxmega on [TELEGRAM] 297.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 298.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 30.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 300.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 31.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 32.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 35.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 41.jpg"] = 1.3333333333333333,
+    ["✨@ofxmega on [TELEGRAM] 42.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 44.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 45.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 52.jpg"] = 1.3333333333333333,
+    ["✨@ofxmega on [TELEGRAM] 53.jpg"] = 0.75,
+    ["✨@ofxmega on [TELEGRAM] 57.jpg"] = 1.3333333333333333,
+    ["0957.jpg"] = 0.6722222222222223,
+    ["0968.jpg"] = 0.7694444444444445,
+    ["0993.jpg"] = 1.1991084695393759,
+    ["219.jpeg"] = 0.76328125,
+    ["2320x3088_38c308c4e31698fd5c0afe55206e00b6.jpg"] = 0.7512953367875648,
+    ["2488.jpg"] = 0.46208530805687204,
+    ["251.jpeg"] = 0.6051606621226875,
+    ["313.jpeg"] = 0.720157255182273,
+    ["314.png"] = 0.5462184873949579,
+    ["PlugLeaks.net - Join Telegram @PlugLeaksHub (1).png"] = 0.8223872073101085,
+    ["PlugLeaks.net - Join Telegram @PlugLeaksHub (2).jpeg"] = 0.6898148148148148,
+    ["PlugLeaks.net - Join Telegram @PlugLeaksHub (2).jpg"] = 1.4339058999253174,
+    ["PlugLeaks.net - Join Telegram @PlugLeaksHub (3).jpeg"] = 0.75,
+}
+
+local __RAW_URL_DATA__ = [=[
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_1.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_10.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_11.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_12.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_13.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_14.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_15.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_16.png
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_17.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_18.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_19.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_2.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_20.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_21.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_22.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_23.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_24.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_25.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_26.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_27.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_28.png
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_29.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_3.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_30.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_31.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_32.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_33.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_34.png
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_35.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_36.png
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_37.png
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_38.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_39.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_4.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_40.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_41.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_42.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_43.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_44.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_45.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_46.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_47.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_48.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_49.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_5.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_50.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_51.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_52.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_53.png
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_54.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_55.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_56.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_57.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_58.webp
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_59.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_6.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_60.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_61.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_62.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_63.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_64.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_65.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_66.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_67.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_68.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_69.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_7.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_70.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_71.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_72.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_73.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_74.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_75.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_76.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_77.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_78.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_79.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_8.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_80.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_81.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_82.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_83.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_84.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_85.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_86.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_87.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_88.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_89.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_9.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_90.png
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_91.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_92.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_93.png
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_94.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_95.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/asian_96.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_1.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_10.jpeg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_100.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_101.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_102.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_103.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_104.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_105.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_106.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_107.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_108.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_109.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_11.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_110.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_111.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_112.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_113.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_114.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_115.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_116.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_117.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_118.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_119.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_12.png
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_120.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_121.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_122.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_123.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_124.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_125.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_126.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_127.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_128.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_129.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_13.png
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_130.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_131.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_132.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_133.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_134.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_135.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_136.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_137.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_138.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_139.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_14.png
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_140.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_141.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_142.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_143.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_144.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_145.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_146.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_147.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_148.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_15.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_16.png
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_17.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_18.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_19.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_2.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_20.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_21.png
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_22.png
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_23.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_24.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_25.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_26.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_27.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_28.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_29.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_3.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_30.png
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_31.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_32.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_33.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_34.png
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_35.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_36.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_37.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_38.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_39.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_4.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_40.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_41.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_42.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_43.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_44.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_45.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_46.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_47.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_48.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_49.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_5.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_50.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_51.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_52.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_53.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_54.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_55.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_56.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_57.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_58.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_59.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_6.png
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_60.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_61.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_62.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_63.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_64.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_65.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_66.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_67.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_68.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_69.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_7.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_70.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_71.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_72.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_73.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_74.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_75.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_76.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_77.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_78.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_79.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_8.webp
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_80.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_81.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_82.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_83.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_84.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_85.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_86.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_87.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_88.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_89.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_9.png
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_90.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_91.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_92.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_93.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_94.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_95.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_96.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_97.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_98.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/goth_99.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/white_1.png
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/white_2.jpeg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/white_3.jpg
+https://raw.githubusercontent.com/swastikaspammer-hue/mdrecode-assets/main/goon_corner/white_4.jpeg
+]=]
+
+pcall(function()
+    for link in __RAW_URL_DATA__:gmatch("(https?://%S+)") do
+        local lower_link = link:lower()
+        if not lower_link:find("%.mp4") and not lower_link:find("%.mov") and not lower_link:find("%.avi") and not lower_link:find("%.webp") and not lower_link:find("%.gif") then
+            link = link:gsub('"', ""):gsub(',', "")
+            table.insert(urls_all, link)
+            if link:find("/goth_") then table.insert(urls_goth, link) end
+            if link:find("/white_") then table.insert(urls_white, link) end
+            if link:find("/asian_") then table.insert(urls_asian, link) end
+        end
+    end
+    if #urls_all > 0 then
+        urls_loaded = true
+        debug_status = "Loaded " .. tostring(#urls_all) .. " URLs!"
+    end
+end)
+
+
+local ffi = require("ffi")
+ffi.cdef[[
+    unsigned int __stdcall WinExec(const char* lpCmdLine, unsigned int uCmdShow);
+    bool __stdcall DeleteUrlCacheEntryA(const char* lpszUrlName);
+    int __stdcall mciSendStringA(const char* lpstrCommand, char* lpstrReturnString, unsigned int uReturnLength, void* hwndCallback);
+]]
+local urlmon = ffi.load("UrlMon")
+local wininet = ffi.load("WinInet")
+local winmm = ffi.load("winmm")
+
+if files and files.create_folder then
+    files.create_folder("nl/goon_corner")
+end
+
+local current_texture = nil
+local unseen_urls = {}
+local next_switch = nil
+local asmr_url = "https://www.dropbox.com/scl/fi/whwspuhp52r2bbj6okvah/F4M-Don-t-Call-Me-Mommy-If-You-Can-t-Handle-The-Consequences-Femdom-GFE-ASMR-Audio-Roleplay.mp3?rlkey=lr76sgifcopp9r6bccksozyf2&st=sy3a3igg&dl=1"
+local asmr_path = "nl\\goon_corner\\asmr_mommy.mp3"
+local asmr_max_duration = 2224
+local current_selected_track = nil
+local asmr_retry_time = 0
+local audio_playing = false
+local original_game_volume = nil
+local game_volume_reduced = false
+local last_toggle_state = false
+local config_loading = false
+local is_fetching = false
+local is_prefetching = false
+local next_ready_aspect = nil
+local current_image_aspect = 1.0
+local last_switch_time = 0
+local pending_fetch_url = nil
+local pending_original_url = nil
+local pending_fetch_time = 0
+local current_asmr_volume = -1
+local current_asmr_seek = -1
+local current_delay = 5
+local was_dragging_seek = false
+local last_seek_time = 0
+local was_skip_pressed = false
+local was_boss_key_active = false
+local asmr_pos_buf = ffi.new("char[128]")
+
+local audio_paused = false
+local audio_initialized = false
+
+local function play_asmr()
+    if audio_playing or not winmm then return end
+    if globals.realtime < asmr_retry_time then return end
+
+    if not audio_initialized then
+        pcall(function() winmm.mciSendStringA("close goth_asmr", nil, 0, nil) end)
+        local status, res = pcall(function() return winmm.mciSendStringA('open "' .. asmr_path .. '" type mpegvideo alias goth_asmr', nil, 0, nil) end)
+        if status and res == 0 then
+            audio_initialized = true
+        else
+            asmr_retry_time = globals.realtime + 1.0
+            return
+        end
+    end
+    
+    pcall(function() winmm.mciSendStringA("play goth_asmr repeat", nil, 0, nil) end)
+    audio_playing = true
+    audio_paused = false
+end
+
+local function pause_asmr()
+    if not audio_playing or not winmm then return end
+    pcall(function() winmm.mciSendStringA("pause goth_asmr", nil, 0, nil) end)
+    audio_playing = false
+    audio_paused = true
+end
+
+local function stop_asmr()
+    if (not audio_playing and not audio_paused) or not winmm then return end
+    pcall(function() winmm.mciSendStringA("close goth_asmr", nil, 0, nil) end)
+    audio_playing = false
+    audio_paused = false
+    audio_initialized = false
+end
+
+pcall(function()
+    local t1_path = "nl\\goon_corner\\asmr_mommy.mp3"
+    local t1_url = "https://www.dropbox.com/scl/fi/whwspuhp52r2bbj6okvah/F4M-Don-t-Call-Me-Mommy-If-You-Can-t-Handle-The-Consequences-Femdom-GFE-ASMR-Audio-Roleplay.mp3?rlkey=lr76sgifcopp9r6bccksozyf2&st=sy3a3igg&dl=1"
+    local t2_path = "nl\\goon_corner\\asmr_whos_mommy.m4a"
+    local t2_url = "https://media.soundgasm.net/sounds/469b0d68ac2a42f7258a40578db2f8937d358ccd.m4a"
+
+    local ps_cmd1 = string.format('powershell -windowstyle hidden -command "if (-not (Test-Path \'%s\')) { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UserAgent \'Mozilla/5.0\' -Uri \'%s\' -OutFile \'%s\' }"', t1_path, t1_url, t1_path)
+    local ps_cmd2 = string.format('powershell -windowstyle hidden -command "if (-not (Test-Path \'%s\')) { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UserAgent \'Mozilla/5.0\' -Uri \'%s\' -OutFile \'%s\' }"', t2_path, t2_url, t2_path)
+    
+    ffi.C.WinExec(ps_cmd1, 0)
+    ffi.C.WinExec(ps_cmd2, 0)
+end)
+
+math.randomseed(math.floor(globals.realtime * 1000))
+
+if events and events.config_load then
+    events.config_load:set(function()
+
+        unseen_urls = {}
+        current_texture = nil
+        next_ready_texture = nil
+        config_loading = true
+        next_switch = globals.realtime + current_delay
+    end)
+end
+
+local last_file_check = 0
+local function check_pending_fetch()
+    if pending_fetch_url then
+        if globals.realtime > pending_fetch_time + 30.0 then
+            pcall(function() ffi.C.WinExec('powershell -windowstyle hidden -command "Remove-Item -Path \'nl/goon_corner/temp_slideshow.png*\' -ErrorAction SilentlyContinue"', 0) end)
+            
+            if pending_original_url then
+                for i = 1, #goon_corner_urls do
+                    if goon_corner_urls[i] == pending_original_url then
+                        table.remove(goon_corner_urls, i)
+                        break
+                    end
+                end
+                for i = 1, #unseen_urls do
+                    if unseen_urls[i] == pending_original_url then
+                        table.remove(unseen_urls, i)
+                        break
+                    end
+                end
+            end
+            
+            pending_fetch_url = nil
+            pending_original_url = nil
+            is_fetching = false
+            is_prefetching = false
+            debug_status = "Timeout (30s)! Deleted."
+            return
+        end
+
+        local elapsed = math.floor((globals.realtime - pending_fetch_time) * 10) / 10
+        debug_status = "Downloading (" .. tostring(elapsed) .. "s)..."
+
+        if globals.realtime - last_file_check < 0.2 then return end
+        last_file_check = globals.realtime
+
+        local error_bytes = nil
+        pcall(function() error_bytes = files and files.read and files.read("nl/goon_corner/error.txt") end)
+        if error_bytes then
+            pcall(function() ffi.C.WinExec('powershell -windowstyle hidden -command "Remove-Item -Path \'nl/goon_corner/error.txt\' -ErrorAction SilentlyContinue; Remove-Item -Path \'nl/goon_corner/temp_slideshow.png*\' -ErrorAction SilentlyContinue"', 0) end)
+            
+            if pending_original_url then
+                for i = 1, #goon_corner_urls do
+                    if goon_corner_urls[i] == pending_original_url then
+                        table.remove(goon_corner_urls, i)
+                        break
+                    end
+                end
+                for i = 1, #unseen_urls do
+                    if unseen_urls[i] == pending_original_url then
+                        table.remove(unseen_urls, i)
+                        break
+                    end
+                end
+            end
+            
+            pending_fetch_url = nil
+            pending_original_url = nil
+            is_fetching = false
+            is_prefetching = false
+            debug_status = "Dead link! Deleted."
+            return
+        end
+
+        local temp_path = "nl/goon_corner/temp_slideshow.png"
+        local bytes = nil
+        pcall(function()
+            bytes = files and files.read and files.read(temp_path)
+        end)
+        
+        if bytes then
+            local is_img = false
+            if type(bytes) == "string" and #bytes >= 3 then
+                local b1, b2, b3 = bytes:byte(1, 3)
+                if (b1 == 137 and b2 == 80 and b3 == 78) or (b1 == 255 and b2 == 216 and b3 == 255) then 
+                    is_img = true 
+                end
+            end
+
+            if is_img then
+                local status, img = pcall(function() return render.load_image_from_file(temp_path, type(vector) == "function" and vector(1200, 1200) or type(vector) == "table" and vector(1200, 1200) or nil) end)
+                if status and img then
+                    local filename = pending_original_url and pending_original_url:match("([^/]+)$") or ""
+                    filename = filename:gsub("%%20", " ")
+                    local aspect = image_aspects[filename] or 1.0
+                    if is_prefetching then
+                        next_ready_texture = img
+                        next_ready_aspect = aspect
+                    else
+                        current_texture = img
+                        current_image_aspect = aspect
+                        last_switch_time = globals.realtime
+                        next_switch = globals.realtime + current_delay
+                    end
+                else
+                    is_img = false
+                end
+            end
+
+            if not is_img then
+                if pending_original_url then
+                    for i = 1, #goon_corner_urls do
+                        if goon_corner_urls[i] == pending_original_url then
+                            table.remove(goon_corner_urls, i)
+                            break
+                        end
+                    end
+                    for i = 1, #unseen_urls do
+                        if unseen_urls[i] == pending_original_url then
+                            table.remove(unseen_urls, i)
+                            break
+                        end
+                    end
+                end
+                debug_status = "Invalid format! Deleted."
+            end
+            
+            pcall(function() ffi.C.WinExec('powershell -windowstyle hidden -command "Remove-Item -Path \'nl/goon_corner/temp_slideshow.png\' -ErrorAction SilentlyContinue"', 0) end)
+
+            pending_fetch_url = nil
+            pending_original_url = nil
+            is_fetching = false
+            is_prefetching = false
+        end
+    end
+end
+
+local function fetch_random_image(prefetch)
+    if #goon_corner_urls == 0 or is_fetching then return end
+    
+    if #unseen_urls == 0 then
+        for i = 1, #goon_corner_urls do
+            unseen_urls[i] = goon_corner_urls[i]
+        end
+    end
+
+    local rand_idx = math.random(1, #unseen_urls)
+    local url = unseen_urls[rand_idx]
+    local original_url = url
+    table.remove(unseen_urls, rand_idx)
+    
+    -- Dynamically force Discord's servers to downscale the image to save bandwidth and load instantly!
+    if url:find("discord") then
+        url = url:gsub("cdn%.discordapp%.com", "media.discordapp.net")
+        if not url:find("width=") then
+            url = url .. (url:find("%?") and "&" or "?") .. "width=400&height=400"
+        end
+    end
+
+    is_fetching = true
+    is_prefetching = prefetch or false
+    pending_fetch_url = url
+    pending_original_url = original_url
+    pending_fetch_time = globals.realtime
+    debug_status = "Starting PowerShell..."
+    
+    local temp_path = "nl/goon_corner/temp_slideshow.png"
+    pcall(function()
+        os.remove(temp_path)
+        os.remove(temp_path .. ".tmp")
+        os.remove("nl/goon_corner/error.txt")
+    end)
+    local ps_cmd = string.format('powershell -windowstyle hidden -command "Remove-Item -Path \'%s*\' -ErrorAction SilentlyContinue; Remove-Item -Path \'nl/goon_corner/error.txt\' -ErrorAction SilentlyContinue; try { $ProgressPreference = \'SilentlyContinue\'; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing -TimeoutSec 20 -Uri \'%s\' -OutFile \'%s.tmp\'; Move-Item -Force \'%s.tmp\' \'%s\' } catch { Set-Content -Path \'nl/goon_corner/error.txt\' -Value $_.Exception.Message }"', temp_path, url, temp_path, temp_path, temp_path)
+    
+    -- Execute asynchronously via WinExec (0 = SW_HIDE)
+    pcall(function()
+        ffi.C.WinExec(ps_cmd, 0)
+    end)
+end
+
+local gc_pos = type(vector) == "function" and vector(10, 10) or type(vector) == "table" and vector(10, 10) or nil
+local gc_size = type(vector) == "function" and vector(200, 200) or type(vector) == "table" and vector(200, 200) or nil
+local is_dragging = false
+local is_resizing = false
+local drag_offset_x = 0
+local drag_offset_y = 0
+
+local function on_render()
+    local is_enabled = v51 and v51.get and v51.get("goon_corner_enabled")
+    local is_asmr_enabled = v51 and v51.get and v51.get("goon_corner_asmr_enabled")
+    
+    local selected_track = v51 and v51.get and v51.get("goon_corner_asmr_track_select") or "Don't Call Me Mommy (37m)"
+    if selected_track ~= current_selected_track then
+        current_selected_track = selected_track
+        stop_asmr()
+        if selected_track == "Don't Call Me Mommy (37m)" then
+            asmr_url = "https://www.dropbox.com/scl/fi/whwspuhp52r2bbj6okvah/F4M-Don-t-Call-Me-Mommy-If-You-Can-t-Handle-The-Consequences-Femdom-GFE-ASMR-Audio-Roleplay.mp3?rlkey=lr76sgifcopp9r6bccksozyf2&st=sy3a3igg&dl=1"
+            asmr_path = "nl\\goon_corner\\asmr_mommy.mp3"
+            asmr_max_duration = 2224
+        else
+            asmr_url = "https://media.soundgasm.net/sounds/469b0d68ac2a42f7258a40578db2f8937d358ccd.m4a"
+            asmr_path = "nl\\goon_corner\\asmr_whos_mommy.m4a"
+            asmr_max_duration = 1114
+        end
+        if v51.elements_ptrs["goon_corner_seek"] then
+            v51.elements_ptrs["goon_corner_seek"].value = 0
+        end
+        current_asmr_seek = 0
+    end
+    
+    current_delay = v51 and v51.get and v51.get("goon_corner_time") or 5
+    local target_vol = v51 and v51.get and v51.get("goon_corner_volume") or 50
+    local target_seek = v51 and v51.get and v51.get("goon_corner_seek") or 0
+
+    if target_seek > (asmr_max_duration or 2224) then
+        target_seek = asmr_max_duration or 2224
+        if v51.elements_ptrs["goon_corner_seek"] then
+            v51.elements_ptrs["goon_corner_seek"].value = target_seek
+        end
+    end
+
+    local boss_key_obj = v51 and v51.get and v51.get("goon_corner_boss_key")
+    local is_boss_key = type(boss_key_obj) == "table" and boss_key_obj.value or false
+
+    local is_focus_mode = v51 and v51.get and v51.get("goon_corner_focus_mode")
+    local is_alive_focus = false
+    if is_focus_mode then
+        local local_player = entity and entity.get_local_player and entity.get_local_player()
+        if local_player and local_player.is_alive and local_player:is_alive() then
+            is_alive_focus = true
+        end
+    end
+
+    if is_boss_key or is_alive_focus then
+        if audio_playing then pause_asmr() end
+        was_boss_key_active = true
+        return
+    else
+        if was_boss_key_active then
+            was_boss_key_active = false
+        end
+    end
+
+    local skip_key_obj = v51 and v51.get and v51.get("goon_corner_skip_key")
+    local is_skip_key = type(skip_key_obj) == "table" and skip_key_obj.value or false
+    if is_skip_key then
+        if not was_skip_pressed then
+            was_skip_pressed = true
+            next_switch = 0
+            if not next_ready_texture then
+                current_texture = nil
+                is_fetching = false
+                pcall(function()
+                    os.remove("nl/goon_corner/temp_slideshow.png")
+                    os.remove("nl/goon_corner/temp_slideshow.png.tmp")
+                end)
+            end
+        end
+    else
+        was_skip_pressed = false
+    end
+
+    local is_user_paused = v51 and v51.get and v51.get("goon_corner_asmr_pause")
+
+    if is_asmr_enabled then
+        if is_user_paused then
+            pause_asmr()
+        else
+            play_asmr()
+        end
+        if audio_playing and winmm then
+            if target_vol ~= current_asmr_volume then
+                current_asmr_volume = target_vol
+                pcall(function() winmm.mciSendStringA("setaudio goth_asmr volume to " .. tostring(target_vol * 10), nil, 0, nil) end)
+            end
+            local diff = target_seek - current_asmr_seek
+            if diff < 0 then diff = -diff end
+            local mouse_down = common.is_button_down(1)
+            
+            if diff > 0 and mouse_down then
+                was_dragging_seek = true
+                current_asmr_seek = target_seek
+            elseif was_dragging_seek and not mouse_down then
+                was_dragging_seek = false
+                current_asmr_seek = target_seek
+                last_seek_time = globals.realtime
+                local seek_ms = math.floor(target_seek * 1000)
+                pcall(function() winmm.mciSendStringA("play goth_asmr from " .. tostring(seek_ms) .. " repeat", nil, 0, nil) end)
+            elseif not was_dragging_seek and globals.realtime > last_seek_time + 1.0 then
+                local status_ok = pcall(function() winmm.mciSendStringA("status goth_asmr position", asmr_pos_buf, 128, nil) end)
+                if status_ok then
+                    local current_ms = tonumber(ffi.string(asmr_pos_buf))
+                    if current_ms then
+                        local sec = math.floor(current_ms / 1000)
+                        if v51.elements_ptrs["goon_corner_seek"] and sec ~= current_asmr_seek then
+                            v51.elements_ptrs["goon_corner_seek"].value = sec
+                            current_asmr_seek = sec
+                        end
+                    end
+                end
+            end
+        end
+    else
+        stop_asmr()
+    end
+
+    -- Game volume reduction logic (outside of is_asmr_enabled block)
+    local is_active_playing = audio_playing and is_asmr_enabled and not is_boss_key and not is_alive_focus
+    if is_active_playing then
+        local slider_pct = v51 and v51.get and v51.get("goon_corner_asmr_game_volume_reduce") or 100
+        if slider_pct < 100 then
+            if not game_volume_reduced then
+                original_game_volume = cvar.volume:float()
+                game_volume_reduced = true
+            end
+            local target_vol = original_game_volume * (slider_pct / 100)
+            cvar.volume:float(target_vol)
+        else
+            if game_volume_reduced and original_game_volume then
+                cvar.volume:float(original_game_volume)
+                original_game_volume = nil
+                game_volume_reduced = false
+            end
+        end
+    else
+        if game_volume_reduced and original_game_volume then
+            cvar.volume:float(original_game_volume)
+            original_game_volume = nil
+            game_volume_reduced = false
+        end
+    end
+
+    local is_crosshair_active = v51 and v51.get and v51.get("goon_corner_crosshair")
+    if not is_enabled and not is_crosshair_active then 
+
+        unseen_urls = {}
+        current_texture = nil
+        next_ready_texture = nil
+        last_toggle_state = false
+        config_loading = false
+        return 
+    end
+
+    if not next_switch then
+        next_switch = globals.realtime
+    end
+
+    local selected_cat = v51 and v51.get and v51.get("goon_corner_category") or "All"
+    if selected_cat ~= current_category then
+        current_category = selected_cat
+        if current_category == "All" then 
+            goon_corner_urls = urls_all
+        elseif current_category == "Goth" then 
+            goon_corner_urls = urls_goth
+        elseif current_category == "White" then 
+            goon_corner_urls = urls_white 
+        elseif current_category == "Asian" then 
+            goon_corner_urls = urls_asian 
+        end
+        unseen_urls = {}
+        next_switch = 0
+    end
+
+    if not last_toggle_state then
+        last_toggle_state = true
+        if not config_loading then
+            next_switch = globals.realtime -- fetch instantly if manually toggled
+        end
+    end
+    
+    config_loading = false -- reset the flag after first frame
+
+    if globals.realtime >= next_switch then
+        if next_ready_texture then
+            current_texture = next_ready_texture
+            current_image_aspect = next_ready_aspect or 1.0
+            last_switch_time = globals.realtime
+            total_images_viewed = total_images_viewed + 1
+            next_ready_texture = nil
+            next_ready_aspect = nil
+            next_switch = globals.realtime + current_delay
+        elseif not is_fetching then
+            fetch_random_image(false)
+        end
+    elseif globals.realtime > (next_switch - math.min(2.5, current_delay * 0.5)) and not next_ready_texture and not is_fetching then
+        fetch_random_image(true)
+    end
+
+    check_pending_fetch()
+
+    pcall(function()
+        local menu_open = v51 and v51.is_open and v51.is_open()
+        local mouse_pos = ui.get_mouse_position and ui.get_mouse_position() or vector(0, 0)
+        local is_down = common.is_button_down and common.is_button_down(1)
+
+        local draw_pos, draw_size = nil, nil
+        local fit_mode = v51 and v51.get and v51.get("goon_corner_fit_mode") or "Default"
+        if current_texture and gc_pos and gc_size then
+            if fit_mode == "Default" then
+                draw_pos = gc_pos
+                draw_size = gc_size
+            else
+                local box_w, box_h = gc_size.x, gc_size.y
+                local box_aspect = box_w / box_h
+                local aspect = current_image_aspect or 1.0
+
+                local draw_w, draw_h = box_w, box_h
+                if aspect > box_aspect then
+                    draw_h = box_w / aspect
+                else
+                    draw_w = box_h * aspect
+                end
+
+                draw_pos = type(vector) == "function" and vector(gc_pos.x + (box_w - draw_w) / 2, gc_pos.y + (box_h - draw_h) / 2) or type(vector) == "table" and vector(gc_pos.x + (box_w - draw_w) / 2, gc_pos.y + (box_h - draw_h) / 2) or nil
+                draw_size = type(vector) == "function" and vector(draw_w, draw_h) or type(vector) == "table" and vector(draw_w, draw_h) or nil
+            end
+        end
+
+        if is_enabled then
+            if menu_open and gc_pos and gc_size then
+                -- Determine the active visible box for clicking/resizing
+                local v_pos = gc_pos
+                local v_size = gc_size
+                if is_asmr_enabled and draw_pos and draw_size then
+                    v_size = v_size + vector(0, 30)
+                end
+
+                local resize_rect_pos_x = v_pos.x + v_size.x - 15
+                local resize_rect_pos_y = v_pos.y + v_size.y - 15
+
+                if is_down then
+                    if not is_dragging and not is_resizing then
+                        if mouse_pos.x >= resize_rect_pos_x and mouse_pos.y >= resize_rect_pos_y and mouse_pos.x <= v_pos.x + v_size.x and mouse_pos.y <= v_pos.y + v_size.y then
+                            is_resizing = true
+                        elseif mouse_pos.x >= v_pos.x and mouse_pos.y >= v_pos.y and mouse_pos.x <= v_pos.x + v_size.x and mouse_pos.y <= v_pos.y + v_size.y then
+                            is_dragging = true
+                            drag_offset_x = mouse_pos.x - gc_pos.x
+                            drag_offset_y = mouse_pos.y - gc_pos.y
+                        end
+                    end
+                else
+                    is_dragging = false
+                    is_resizing = false
+                end
+
+                if is_dragging then
+                    local nx = mouse_pos.x - drag_offset_x
+                    local ny = mouse_pos.y - drag_offset_y
+                    if type(nx) == "number" and nx == nx then gc_pos.x = nx end
+                    if type(ny) == "number" and ny == ny then gc_pos.y = ny end
+                elseif is_resizing then
+                    -- Resize logic
+                    local nx = mouse_pos.x - v_pos.x
+                    local ny = mouse_pos.y - v_pos.y
+                    local size = math.max(nx, ny)
+                    if type(size) == "number" and size == size then 
+                        gc_size.x = size
+                        gc_size.y = size
+                    end
+                    if gc_size.x < 50 then 
+                        gc_size.x = 50
+                        gc_size.y = 50
+                    end
+                end
+
+            -- Anti-crash bounds clamping
+            local screen = render.screen_size and render.screen_size() or vector(1920, 1080)
+            if gc_pos.x < -gc_size.x + 10 then gc_pos.x = -gc_size.x + 10 end
+            if gc_pos.y < -gc_size.y + 10 then gc_pos.y = -gc_size.y + 10 end
+            if gc_pos.x > screen.x - 10 then gc_pos.x = screen.x - 10 end
+            if gc_pos.y > screen.y - 10 then gc_pos.y = screen.y - 10 end
+        else
+            is_dragging = false
+            is_resizing = false
+        end
+
+        local clr = type(color) == "function" and color(255, 255, 255, 255) or type(color) == "table" and color(255, 255, 255, 255) or nil
+        local pink = type(color) == "function" and color(255, 0, 255, 255) or type(color) == "table" and color(255, 0, 255, 255) or nil
+        local accent = v51 and v51.get and v51.get("theme_accent") or pink
+
+        if (is_dragging or is_resizing) and render.rect_filled then
+            local dim_clr = type(color) == "function" and color(0, 0, 0, 180) or type(color) == "table" and color(0, 0, 0, 180) or nil
+            if dim_clr then
+                local screen = render.screen_size and render.screen_size() or vector(1920, 1080)
+                render.rect_filled(type(vector) == "function" and vector(0, 0) or type(vector) == "table" and vector(0, 0), screen, dim_clr, 0)
+            end
+        end
+
+        if current_texture and draw_pos and draw_size and clr then
+            local fit_mode = v51 and v51.get and v51.get("goon_corner_fit_mode") or "Default"
+            local elapsed_fade = globals.realtime - last_switch_time
+            local fade_alpha = math.min(1, elapsed_fade / 0.4)
+            local fade_clr = type(color) == "function" and color(clr.r or 255, clr.g or 255, clr.b or 255, math.floor(fade_alpha * (clr.a or 255))) or type(color) == "table" and color(clr.r or 255, clr.g or 255, clr.b or 255, math.floor(fade_alpha * (clr.a or 255))) or clr
+
+            if fit_mode == "Blurred Background" then
+                -- Stretched background
+                local bg_clr = type(color) == "function" and color(255, 255, 255, math.floor(fade_alpha * 120)) or type(color) == "table" and color(255, 255, 255, math.floor(fade_alpha * 120)) or nil
+                if bg_clr then
+                    if render.texture then
+                        render.texture(current_texture, gc_pos, gc_size, bg_clr)
+                    elseif render.image then
+                        render.image(current_texture, gc_pos, gc_size, bg_clr)
+                    end
+                end
+                -- Apply blur over the background
+                if render.blur then
+                    render.blur(gc_pos, gc_pos + gc_size, 4, fade_alpha, 0)
+                elseif v29.blur then
+                    v29.blur(gc_pos, gc_pos + gc_size, 4, fade_alpha, 0)
+                end
+            end
+
+            -- Front image
+            if render.texture then
+                render.texture(current_texture, draw_pos, draw_size, fade_clr)
+            elseif render.image then
+                render.image(current_texture, draw_pos, draw_size, fade_clr)
+            end
+            
+            if (is_dragging or is_resizing) and render.rect then
+                render.rect(gc_pos, gc_pos + gc_size, accent, 0, 3)
+            end
+            
+            local text_clr = type(color) == "function" and color(255, 255, 255, 200) or type(color) == "table" and color(255, 255, 255, 200) or nil
+            local text_bg = type(color) == "function" and color(0, 0, 0, 150) or type(color) == "table" and color(0, 0, 0, 150) or nil
+            if render.text and render.rect_filled and text_clr and text_bg then
+                local txt = "Session Count: " .. tostring(total_images_viewed)
+                render.rect_filled(gc_pos + vector(4, 4), gc_pos + vector(120, 22), text_bg, 3)
+                render.text(1, gc_pos + vector(8, 6), text_clr, "", txt)
+            end
+            
+            -- Media Player UI
+            if is_asmr_enabled then
+                local yt_bar_height = 30
+                local yt_bar_pos = gc_pos + vector(0, gc_size.y)
+                local yt_bar_size = vector(gc_size.x, yt_bar_height)
+                
+                local yt_bg = type(color) == "function" and color(15, 15, 15, 230) or type(color) == "table" and color(15, 15, 15, 230) or nil
+                local yt_red = type(color) == "function" and color(255, 0, 0, 255) or type(color) == "table" and color(255, 0, 0, 255) or nil
+                local yt_white = type(color) == "function" and color(255, 255, 255, 255) or type(color) == "table" and color(255, 255, 255, 255) or nil
+                local yt_gray = type(color) == "function" and color(150, 150, 150, 255) or type(color) == "table" and color(150, 150, 150, 255) or nil
+
+                if render.rect_filled and yt_bg and yt_red then
+                    -- Main bar background
+                    render.rect_filled(yt_bar_pos, yt_bar_pos + yt_bar_size, yt_bg, 0)
+                    
+                    if not audio_playing then
+                        -- Downloading Animation
+                        local dl_bar_width = gc_size.x
+                        local bounce_width = 60
+                        local bounce_speed = 3
+                        local bounce_pos = math.abs(math.sin(globals.realtime * bounce_speed)) * (dl_bar_width - bounce_width)
+                        render.rect_filled(yt_bar_pos + vector(bounce_pos, 0), yt_bar_pos + vector(bounce_pos + bounce_width, 3), accent, 0)
+                        
+                        if render.text then
+                            local dot_count = math.floor(globals.realtime * 2) % 4
+                            local dots = string.rep(".", dot_count)
+                            render.text(1, yt_bar_pos + vector(8, 15), yt_white, "lc", "Downloading Audio (38MB)" .. dots)
+                        end
+                    else
+                        -- YouTube Progress bar
+                        local max_dur = asmr_max_duration or 2224
+                        local asmr_progress = math.max(0, math.min(1, current_asmr_seek / max_dur))
+                        local pb_start = yt_bar_pos
+                        local pb_end = yt_bar_pos + vector(gc_size.x * asmr_progress, 3)
+                        render.rect_filled(pb_start, pb_end, yt_red, 0)
+                        
+                        -- Text elements
+                        if render.text then
+                            local play_icon = "||"
+                            local safe_seek = math.max(0, current_asmr_seek)
+                            local m = math.floor(safe_seek / 60)
+                            local s = safe_seek % 60
+                            local total_m = math.floor(max_dur / 60)
+                            local total_s = max_dur % 60
+                            local time_str = string.format("%s  %02d:%02d / %02d:%02d", play_icon, m, s, total_m, total_s)
+                            
+                            render.text(1, yt_bar_pos + vector(8, 15), yt_white, "lc", time_str)
+                            local track_title = (current_selected_track == "Don't Call Me Mommy (37m)") and "Goth Mommy ASMR" or "Who's your mommy?"
+                            render.text(1, yt_bar_pos + vector(gc_size.x - 8, 15), yt_gray, "rc", track_title)
+                        end
+                    end
+                end
+            end
+            
+            -- Standard sleek progress bar for image loading
+            if next_switch then
+                local progress = 0
+                local alpha_mod = 255
+                
+                if is_fetching and not is_prefetching then
+                    progress = 1.0
+                    alpha_mod = 100 + math.floor(math.abs(math.sin(globals.realtime * 4)) * 155)
+                else
+                    local time_left = next_switch - globals.realtime
+                    progress = 1.0 - (time_left / current_delay)
+                    if progress < 0 then progress = 0 end
+                    if progress > 1 then progress = 1 end
+                end
+                
+                local bar_bg = type(color) == "function" and color(15, 15, 15, 200) or type(color) == "table" and color(15, 15, 15, 200) or nil
+                local bar_accent = type(color) == "function" and color(accent.r, accent.g, accent.b, alpha_mod) or type(color) == "table" and color(accent.r, accent.g, accent.b, alpha_mod) or nil
+                local glow_accent = type(color) == "function" and color(accent.r, accent.g, accent.b, math.floor(alpha_mod * 0.3)) or type(color) == "table" and color(accent.r, accent.g, accent.b, math.floor(alpha_mod * 0.3)) or nil
+                
+                if render.rect and bar_bg and bar_accent then
+                    local p_pos = gc_pos
+                    local p_size = gc_size
+                    local bar_start_y = is_asmr_enabled and 0 or (p_size.y - 4)
+                    local bar_end_y = is_asmr_enabled and 4 or p_size.y
+                    
+                    -- Background track
+                    render.rect(p_pos + vector(0, bar_start_y), p_pos + vector(p_size.x, bar_end_y), bar_bg, 2)
+                    
+                    local fill_end = p_pos + vector(p_size.x * progress, bar_end_y)
+                    local fill_start = p_pos + vector(0, bar_start_y)
+                    
+                    -- Glow layer
+                    if glow_accent then
+                        render.rect(fill_start - vector(0, 2), fill_end + vector(0, 2), glow_accent, 4)
+                    end
+                    
+                    -- Animated fill
+                    render.rect(fill_start, fill_end, bar_accent, 2)
+                end
+            end
+        elseif gc_pos and gc_size and pink then
+            local dark_bg = type(color) == "function" and color(25, 25, 25, 200) or type(color) == "table" and color(25, 25, 25, 200) or nil
+            local white = type(color) == "function" and color(255, 255, 255, 255) or type(color) == "table" and color(255, 255, 255, 255) or nil
+            local gray = type(color) == "function" and color(150, 150, 150, 255) or type(color) == "table" and color(150, 150, 150, 255) or nil
+            
+            if render.rect and dark_bg then
+                render.rect(gc_pos, gc_pos + gc_size, dark_bg, 0)
+                if render.text and white and gray then
+                    render.text(1, gc_pos + vector(gc_size.x / 2, gc_size.y / 2 - 10), white, "c", "Fetching Image...")
+                    local status_txt = debug_status or "Idle"
+                    render.text(1, gc_pos + vector(gc_size.x / 2, gc_size.y / 2 + 10), gray, "c", "Status: " .. status_txt)
+                end
+            end
+        end
+
+        if menu_open and render.rect_filled and gc_pos and gc_size then
+            local v_pos = gc_pos
+            local v_size = gc_size
+            if is_asmr_enabled and draw_pos and draw_size then
+                v_size = v_size + vector(0, 30)
+            end
+            local resize_rect_pos = v_pos + v_size - vector(15, 15)
+            render.rect_filled(resize_rect_pos, resize_rect_pos + vector(15, 15), accent, 0)
+        end
+
+        end
+
+        local is_crosshair = v51 and v51.get and v51.get("goon_corner_crosshair")
+        if is_crosshair and current_texture then
+            local cross_size_val = v51 and v51.get and v51.get("goon_corner_crosshair_size") or 50
+            local cross_alpha_val = v51 and v51.get and v51.get("goon_corner_crosshair_alpha") or 100
+            
+            local screen = render.screen_size and render.screen_size() or vector(1920, 1080)
+            local cx, cy = screen.x / 2, screen.y / 2
+            local cross_size = type(vector) == "function" and vector(cross_size_val, cross_size_val) or type(vector) == "table" and vector(cross_size_val, cross_size_val) or nil
+            local cross_pos = type(vector) == "function" and vector(cx - cross_size_val / 2, cy - cross_size_val / 2) or type(vector) == "table" and vector(cx - cross_size_val / 2, cy - cross_size_val / 2) or nil
+            local cross_clr = type(color) == "function" and color(255, 255, 255, cross_alpha_val) or type(color) == "table" and color(255, 255, 255, cross_alpha_val) or nil
+            
+            if cross_clr and cross_size and cross_pos then
+                if render.texture then
+                    render.texture(current_texture, cross_pos, cross_size, cross_clr)
+                elseif render.image then
+                    render.image(current_texture, cross_pos, cross_size, cross_clr)
+                end
+            end
+        end
+    end)
+end
+
+local function on_shutdown()
+    stop_asmr()
+    if game_volume_reduced and original_game_volume then
+        cvar.volume:float(original_game_volume)
+    end
+end
+
+if cheat and cheat.RegisterCallback then
+    cheat.RegisterCallback("draw", on_render)
+    cheat.RegisterCallback("destroy", on_shutdown)
+elseif events then
+    if events.render then events.render:set(on_render) end
+    if events.shutdown then events.shutdown:set(on_shutdown) end
+elseif callbacks and callbacks.Register then
+    callbacks.Register("Draw", on_render)
+    callbacks.Register("Unload", on_shutdown)
+end
