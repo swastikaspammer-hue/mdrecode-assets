@@ -10427,7 +10427,7 @@ function hvc_storm_manager:translate_droplet(droplet, frametime, camera_pitch_mo
 end
 
 function hvc_storm_manager:render_droplet(droplet)
-    render.rect_filled(vector(
+    gs_render_rect(
         math.floor(droplet.x), math.floor(droplet.y), 
         math.max(1, math.floor(droplet.render_width)), math.max(1, math.floor(droplet.render_height)),
         self.animation.droplet.color.r, self.animation.droplet.color.g, self.animation.droplet.color.b, self.animation.droplet.color.a
