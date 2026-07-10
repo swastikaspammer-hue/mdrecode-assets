@@ -10169,7 +10169,8 @@ local BindAddress = function(address, typedef)
     end
 end
 
-local gs_exports = {
+local gs_exports
+gs_exports = {
     GetModuleHandle = function(moduleName)
         return NativeGetModuleHandleA(moduleName)
     end,
@@ -10464,8 +10465,7 @@ end
 
 
 -- we have to do shit like this because of issues with ffi overuse
-collectgarbage("setpause", 100)
-collectgarbage("setstepmul", 200)
+-- collectgarbage removed
 
 -- NOTE:
 --      we should probably look into a better way of executing such engine level code
