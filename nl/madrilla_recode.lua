@@ -10097,8 +10097,14 @@ if cheat and cheat.RegisterCallback then
     cheat.RegisterCallback("draw", on_render)
     cheat.RegisterCallback("destroy", on_shutdown)
 elseif events then
-    if events.render then events.render:set(on_render) end
-    if events.shutdown then events.shutdown:set(on_shutdown) end
+    if events.render then events.render:set(function(...)
+        on_render(...)
+        if weather_on_render then weather_on_render(...) end
+    end) end
+    if events.shutdown then events.shutdown:set(function(...)
+        on_shutdown(...)
+        if weather_on_shutdown then weather_on_shutdown(...) end
+    end) end
 elseif callbacks and callbacks.Register then
     callbacks.Register("Draw", on_render)
     callbacks.Register("Unload", on_shutdown)
@@ -10248,7 +10254,7 @@ vmt_hook = {
             self.__index = self
 
             -- make sure this gets unhooked on script load!
-            events.shutdown:set(function()
+            weather_on_shutdown = function()
                 return hook:unhook_all()
             end)
 
@@ -10924,7 +10930,7 @@ modelInfoVMT:hook("ModelInfoClient.GetVCollide", 6,
                     { "vcollide_t*(__fastcall*)(void* _this, void* edx, int modelIndex)", "vcollide_t*(__thiscall*)(void* _this, int modelIndex)" },
                         hkGetVCollide)
 
-events.render:set(function()
+weather_on_render = function()
     if not v51.get("weather_enabled") then return end
     local pType = v51.get("weather_type") or "none"
     if string.match(pType, "particle") then
