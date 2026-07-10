@@ -9941,8 +9941,10 @@ local function on_render()
             -- Media Player UI
             if is_asmr_enabled then
                 local yt_bar_height = 30
-                local yt_bar_pos = gc_pos + vector(0, gc_size.y)
-                local yt_bar_size = vector(gc_size.x, yt_bar_height)
+                local current_pos = draw_pos or gc_pos
+                local current_size = draw_size or gc_size
+                local yt_bar_pos = current_pos + vector(0, current_size.y)
+                local yt_bar_size = vector(current_size.x, yt_bar_height)
                 
                 local yt_bg = type(color) == "function" and color(15, 15, 15, 230) or type(color) == "table" and color(15, 15, 15, 230) or nil
                 local yt_red = type(color) == "function" and color(255, 0, 0, 255) or type(color) == "table" and color(255, 0, 0, 255) or nil
@@ -9955,7 +9957,7 @@ local function on_render()
                     
                     if not audio_playing then
                         -- Downloading Animation
-                        local dl_bar_width = gc_size.x
+                        local dl_bar_width = current_size.x
                         local bounce_width = 60
                         local bounce_speed = 3
                         local bounce_pos = math.abs(math.sin(globals.realtime * bounce_speed)) * (dl_bar_width - bounce_width)
@@ -9971,7 +9973,7 @@ local function on_render()
                         local max_dur = asmr_max_duration or 2224
                         local asmr_progress = math.max(0, math.min(1, current_asmr_seek / max_dur))
                         local pb_start = yt_bar_pos
-                        local pb_end = yt_bar_pos + vector(gc_size.x * asmr_progress, 3)
+                        local pb_end = yt_bar_pos + vector(current_size.x * asmr_progress, 3)
                         render.rect_filled(pb_start, pb_end, yt_red, 0)
                         
                         -- Text elements
@@ -9986,7 +9988,7 @@ local function on_render()
                             
                             render.text(1, yt_bar_pos + vector(8, 15), yt_white, "lc", time_str)
                             local track_title = (current_selected_track == "Don't Call Me Mommy (37m)") and "Goth Mommy ASMR" or "Who's your mommy?"
-                            render.text(1, yt_bar_pos + vector(gc_size.x - 8, 15), yt_gray, "rc", track_title)
+                            render.text(1, yt_bar_pos + vector(current_size.x - 8, 15), yt_gray, "rc", track_title)
                         end
                     end
                 end
@@ -10012,8 +10014,8 @@ local function on_render()
                 local glow_accent = type(color) == "function" and color(accent.r, accent.g, accent.b, math.floor(alpha_mod * 0.3)) or type(color) == "table" and color(accent.r, accent.g, accent.b, math.floor(alpha_mod * 0.3)) or nil
                 
                 if render.rect and bar_bg and bar_accent then
-                    local p_pos = gc_pos
-                    local p_size = gc_size
+                    local p_pos = draw_pos or gc_pos
+                    local p_size = draw_size or gc_size
                     local bar_start_y = is_asmr_enabled and 0 or (p_size.y - 4)
                     local bar_end_y = is_asmr_enabled and 4 or p_size.y
                     
